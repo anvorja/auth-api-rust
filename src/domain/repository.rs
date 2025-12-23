@@ -1,3 +1,5 @@
+// V2
+// src/domain/repository.rs
 use async_trait::async_trait;
 use uuid::Uuid;
 use crate::domain::user::User;

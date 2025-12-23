@@ -1,3 +1,5 @@
+// V2
+// src/infrastructure/repositories/user_repository_sqlx.rs
 use async_trait::async_trait;
 use sqlx::{PgPool, Row};
 use uuid::Uuid;

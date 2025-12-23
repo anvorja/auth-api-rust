@@ -1,3 +1,5 @@
+// V2
+// src/application/auth_usecase.rs
 use std::sync::Arc;
 use std::error::Error;
 use crate::domain::{user::User, repository::UserRepository};

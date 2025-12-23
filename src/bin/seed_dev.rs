@@ -1,3 +1,5 @@
+// V2
+// src/bin/seed_dev.rs
 use sqlx::postgres::PgPoolOptions;
 use uuid::Uuid;
 use chrono::Utc;

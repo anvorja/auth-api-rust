@@ -1,3 +1,5 @@
+// V2
+// src/infrastructure/http/middleware/security_headers.rs
 use tower_http::set_header::SetResponseHeaderLayer;
 use axum::http::HeaderValue;
 

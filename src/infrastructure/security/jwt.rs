@@ -1,3 +1,5 @@
+// V2
+// src/infrastructure/security/jwt.rs
 use serde::{Deserialize, Serialize};
 use jsonwebtoken::{encode, decode, Header, Validation, EncodingKey, DecodingKey, TokenData};
 use std::error::Error;

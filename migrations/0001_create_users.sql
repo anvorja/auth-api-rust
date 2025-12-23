@@ -1,3 +1,6 @@
+-- V2
+-- migrations/0001_create_users.sql
+
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 CREATE TABLE IF NOT EXISTS users (

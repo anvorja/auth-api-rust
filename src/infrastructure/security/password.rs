@@ -1,3 +1,5 @@
+// V2
+// src/infrastructure/security/password.rs
 use argon2::{
     password_hash::{
         rand_core::OsRng,

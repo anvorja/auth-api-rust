@@ -1,3 +1,5 @@
+// V2
+// src/infrastructure/http/middleware/cors.rs
 use axum::http::{Method, HeaderValue};
 use tower_http::cors::CorsLayer;
 
@@ -7,7 +9,6 @@ pub fn cors() -> CorsLayer {
         .allow_origin([
             "http://localhost:3000".parse::<HeaderValue>().unwrap(),
             "http://127.0.0.1:3000".parse::<HeaderValue>().unwrap(),
-            // Add other origins here
         ])
         .allow_credentials(true)
         .allow_headers([
