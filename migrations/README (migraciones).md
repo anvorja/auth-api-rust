@@ -31,6 +31,16 @@ DATABASE_URL=postgresql://postgres:superapostgres@localhost:5432/usuarios_rust_d
 sqlx migrate run
 ```
 
+### Poblar base de datos con datos seed
+```
+cargo run --bin seed_dev
+```
+
+### Correr aplicación
+```
+cargo run --bin auth-api-rust
+```
+
 ### Revertir la última migración:
 ```bash
 sqlx migrate revert
@@ -54,7 +64,7 @@ sqlx migrate add add_user_roles
 
 ## Migraciones Existentes
 
-### 20240101000000_create_users.sql
+### 20251223_create_users.sql
 Crea la tabla principal `users` con:
 - UUID como primary key
 - Username único (3-30 caracteres, lowercase)
@@ -121,20 +131,3 @@ dropdb usuarios_rust_db
 createdb usuarios_rust_db
 sqlx migrate run
 ```
-
-## Testing
-
-Para testing, puedes crear una base de datos separada:
-
-```bash
-createdb usuarios_rust_db_test
-DATABASE_URL=postgresql://postgres:superapostgres@localhost:5432/usuarios_rust_db_test sqlx migrate run
-```
-
-## Notas Importantes
-
-1. **Nunca modifiques migraciones ya aplicadas en producción**
-2. Las migraciones son irreversibles por diseño (no hay archivos `.down.sql`)
-3. Para cambios, crea una nueva migración
-4. Siempre haz backup antes de aplicar migraciones en producción
-5. Las migraciones se ejecutan en orden por timestamp

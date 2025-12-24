@@ -1,5 +1,5 @@
 -- V1
--- migrations/202412233_create_users.sql
+-- migrations/20251223_create_users.sql
 
 -- Migración: Crear tabla users
 -- Descripción: Tabla principal de usuarios con autenticación
