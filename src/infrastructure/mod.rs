@@ -9,6 +9,5 @@ pub mod security;
 mod test;
 
 pub use db::DbPool;
-pub use http::*;
 pub use repositories::*;
 pub use security::*;

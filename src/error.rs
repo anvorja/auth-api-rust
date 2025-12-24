@@ -6,7 +6,6 @@ use axum::{
     Json,
 };
 use serde::Serialize;
-use std::fmt;
 use utoipa::ToSchema;
 
 /// Errores de la aplicación
