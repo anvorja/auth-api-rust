@@ -1,6 +1,6 @@
 // src/bin/seed_dev.rs
 // Seed simple para poblar la base de datos con usuarios de prueba
-//
+
 // Uso: cargo run --bin seed_dev
 
 use sqlx::postgres::PgPoolOptions;
