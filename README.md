@@ -74,13 +74,15 @@ openssl rand -base64 64
 ```bash
 cargo install sqlx-cli --no-default-features --features postgres
 sqlx migrate run
+cargo run --bin seed_dev
 ```
+
 
 ### 5. Ejecutar la aplicación
 
 ```bash
 # Desarrollo
-cargo run
+cargo run --bin auth-api-rust
 
 # Producción (optimizado)
 cargo build --release
@@ -91,26 +93,26 @@ cargo build --release
 
 ```
 auth-api-rust/
-├── .env                    # Configuración (NO commitear)
-├── .env.example           # Template de configuración
+├── .env                   
+├── .env.example          
 ├── Cargo.toml
-├── migrations/            # Migraciones SQL
+├── migrations/          
 │   └── 0001_create_users.sql
 ├── src/
-│   ├── main.rs           # Bootstrap de la aplicación
+│   ├── main.rs           
 │   ├── app.rs            # Construcción del router
-│   ├── state.rs          # Estado compartido
-│   ├── error.rs          # Manejo de errores
-│   ├── config/           # ✅ Configuración centralizada
+│   ├── state.rs         
+│   ├── error.rs         
+│   ├── config/           # Configuración centralizada
 │   │   ├── mod.rs
 │   │   └── settings.rs
-│   ├── domain/           # 🎯 Entidades y lógica de negocio
+│   ├── domain/           # Entidades y lógica de negocio
 │   │   ├── mod.rs
 │   │   └── user.rs
-│   ├── application/      # 📝 Casos de uso
+│   ├── application/      # Casos de uso
 │   │   ├── mod.rs
 │   │   └── auth_usecase.rs
-│   ├── infrastructure/   # 🔧 Implementaciones técnicas
+│   ├── infrastructure/  
 │   │   ├── mod.rs
 │   │   ├── db.rs
 │   │   ├── repositories/
@@ -127,12 +129,12 @@ auth-api-rust/
 │   │           ├── auth.rs
 │   │           ├── security_headers.rs
 │   │           └── cors.rs
-│   ├── presentation/     # 📤 DTOs y contratos HTTP
+│   ├── presentation/    
 │   │   ├── mod.rs
 │   │   └── dto.rs
-│   ├── docs/            # 📚 Documentación OpenAPI
+│   ├── docs/         
 │   │   └── openapi.rs
-│   └── bin/             # 🛠️ Binarios auxiliares
+│   └── bin/            
 │       └── seed_dev.rs
 ```
 
@@ -178,7 +180,7 @@ JWT_COOKIE_HTTP_ONLY=true       # Protección XSS
 JWT_COOKIE_SAME_SITE=Strict     # Protección CSRF
 
 # CORS
-CORS_ALLOWED_ORIGINS=https://yourdomain.com
+CORS_ALLOWED_ORIGINS=https://mydomain.com
 CORS_ALLOW_CREDENTIALS=true
 
 # Argon2
@@ -242,64 +244,3 @@ http://localhost:9090/api/v1/swagger-ui/
 ```
 
 **Regla de dependencia**: Las capas internas NO conocen las externas.
-
-## 🚀 Despliegue
-
-### Docker (Próximamente)
-
-```bash
-docker-compose up
-```
-
-### Variables de Entorno en Producción
-
-**⚠️ CRÍTICO**: En producción usar:
-
-1. **Secrets Manager** (AWS Secrets Manager, HashiCorp Vault)
-2. **Variables de entorno del sistema**
-3. **Nunca** commitear `.env` al repositorio
-
-## 📝 Configuración (Paso 1 ✅)
-
-### Características del Sistema de Configuración
-
-- ✅ **12-Factor App**: Configuración completamente basada en variables de entorno
-- ✅ **Tipo-seguro**: Todos los valores parseados y validados al inicio
-- ✅ **Singleton thread-safe**: Uso de `once_cell::sync::Lazy`
-- ✅ **Validaciones**: Chequeo de longitud de secretos, timeouts, puertos
-- ✅ **Defaults inteligentes**: Valores por defecto sensatos
-- ✅ **Helpers útiles**: Métodos para parsear CORS, construir URLs, etc.
-- ✅ **Testing**: Tests unitarios incluidos
-
-### Uso de la Configuración
-
-```rust
-use crate::config::SETTINGS;
-
-// Acceso global thread-safe
-let db_url = &SETTINGS.database.url;
-let server_addr = SETTINGS.server_address();
-let is_dev = SETTINGS.is_development();
-```
-
-## 🤝 Contribuir
-
-1. Fork el proyecto
-2. Crear feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit cambios (`git commit -m 'Add some AmazingFeature'`)
-4. Push al branch (`git push origin feature/AmazingFeature`)
-5. Abrir Pull Request
-
-## 📄 Licencia
-
-Este proyecto es privado y confidencial.
-
-## 👨‍💻 Autor
-
-Senior Backend Developer con 10+ años de experiencia en APIs enterprise.
-
----
-
-**Status**: 🚧 En desarrollo
-
-**Próximo paso**: State management y database pool (Paso 2)
