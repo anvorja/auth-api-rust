@@ -134,7 +134,7 @@ auth-api-rust/
 │   ├── docs/         
 │   │   └── openapi.rs
 │   └── bin/            
-│       └── seed_dev.rs
+        └── seed_dev.rs
 ```
 
 ## Endpoints
@@ -232,13 +232,13 @@ http://localhost:9090/api/v1/swagger-ui/
 
 ```
 ┌─────────────────────────────────────────┐
-│  Infrastructure (HTTP, DB, JWT, etc)   │ <- Detalles técnicos
+│  Infrastructure (HTTP, DB, JWT, etc)    │ <- Detalles técnicos
 ├─────────────────────────────────────────┤
-│  Presentation (DTOs, Validations)      │ <- Contratos HTTP
+│  Presentation (DTOs, Validations)       │ <- Contratos HTTP
 ├─────────────────────────────────────────┤
-│  Application (Use Cases)               │ <- Lógica de aplicación
+│  Application (Use Cases)                │ <- Lógica de aplicación
 ├─────────────────────────────────────────┤
-│  Domain (Entities, Business Rules)     │ <- Núcleo del negocio
+│  Domain (Entities, Business Rules)      │ <- Núcleo del negocio
 └─────────────────────────────────────────┘
 ```
 
