@@ -2,7 +2,7 @@
 # Makefile para Auth API Rust
 # Comandos útiles para desarrollo y despliegue
 
-.PHONY: help setup check build run test clean migrate seed validate
+.PHONY: help setup check build run test clean migrate seed validate test-db test-all test-db-clean test-db-setup
 
 # Colores
 GREEN  := \033[0;32m
@@ -52,8 +52,8 @@ dev: ## Ejecutar con auto-reload (requiere cargo-watch)
 	@echo "$(GREEN)Running in watch mode...$(NC)"
 	@cargo watch -x run
 
-test: ## Ejecutar todos los tests
-	@echo "$(GREEN)Running tests...$(NC)"
+test: ## Ejecutar tests rápidos (sin DB)
+	@echo "$(GREEN)Running fast tests...$(NC)"
 	@cargo test
 
 test-verbose: ## Ejecutar tests con output detallado
@@ -134,5 +134,43 @@ update: ## Actualizar dependencias
 tree: ## Mostrar estructura del proyecto
 	@echo "$(GREEN)Project structure:$(NC)"
 	@tree -I 'target|node_modules' -L 3
+
+# ============================================================================
+# TESTS CON BASE DE DATOS
+# ============================================================================
+
+# Variables para testing
+TEST_DB_NAME := usuarios_rust_db_test
+DB_PASSWORD := superapostgres
+
+test-db-setup: ## Configurar base de datos de tests (una sola vez)
+	@echo "$(GREEN)🧪 Configurando base de datos de tests...$(NC)"
+	@bash scripts/setup_test_db.sh
+
+test-db-clean: ## Limpiar base de datos de tests
+	@echo "$(YELLOW)🧹 Limpiando base de datos de tests...$(NC)"
+	@PGPASSWORD=$(DB_PASSWORD) psql -h localhost -U postgres -d $(TEST_DB_NAME) -c "TRUNCATE TABLE users RESTART IDENTITY CASCADE;" 2>/dev/null || true
+	@echo "$(GREEN)✅ Base de datos limpiada$(NC)"
+
+test-db: test-db-clean ## Limpiar DB y ejecutar tests con DB
+	@echo "$(GREEN)🧪 Ejecutando tests con base de datos...$(NC)"
+	@cargo test -- --ignored
+
+test-all: test-db-clean ## Ejecutar TODOS los tests (rápidos + DB)
+	@echo "$(GREEN)🧪 Ejecutando todos los tests...$(NC)"
+	@cargo test
+	@echo ""
+	@echo "$(GREEN)🧪 Ejecutando tests con DB...$(NC)"
+	@cargo test -- --ignored
+
+help-test: ## Ayuda de comandos de testing
+	@echo "$(GREEN)Comandos de Testing:$(NC)"
+	@echo ""
+	@echo "  $(YELLOW)make test$(NC)             - Tests rápidos (sin DB)"
+	@echo "  $(YELLOW)make test-db$(NC)          - Tests con base de datos"
+	@echo "  $(YELLOW)make test-all$(NC)         - Todos los tests"
+	@echo "  $(YELLOW)make test-db-setup$(NC)    - Setup inicial DB de tests"
+	@echo "  $(YELLOW)make test-db-clean$(NC)    - Solo limpiar DB de tests"
+	@echo ""
 
 .DEFAULT_GOAL := help
