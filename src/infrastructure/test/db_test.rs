@@ -6,7 +6,7 @@ use crate::infrastructure::db::{create_pool, verify_connection, health_check, cl
 fn create_test_settings() -> Settings {
     // Usar variables de entorno o valores por defecto para testing
     unsafe {
-        std::env::set_var("DATABASE_URL", "postgresql://postgres:superapostgres@localhost:5432/usuarios_rust_db");
+        std::env::set_var("DATABASE_URL", "postgresql://postgres:superapostgres@localhost:5432/usuarios_rust_db_test");
         std::env::set_var("JWT_SECRET", "test-secret-key-minimum-32-characters-long");
     }
 

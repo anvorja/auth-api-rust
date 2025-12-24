@@ -76,17 +76,37 @@ sqlx migrate run
 cargo run --bin seed_dev
 ```
 
+### Ejecutar migraciones para testing
+```
+bash scripts/setup_test_db.sh
+```
 
 ### 5. Ejecutar la aplicación
 
 ```bash
 # Desarrollo
 cargo run --bin auth-api-rust
-
-# Producción (optimizado)
-cargo build --release
-./target/release/auth-api-rust
 ```
+### Ejecutar todos los tests ignorados (DB):
+
+```bash
+cargo test -- --ignored
+```
+
+### Ejecutar un test específico:
+```bash
+cargo test test_login_user -- --ignored --nocapture
+```
+
+### Ejecutar todos los tests de auth_usecase:
+```bash
+cargo test application::test::auth_usecase_test -- --ignored
+```
+### Limpiar la DB antes de ejecutar:
+```
+psql -h localhost -U postgres -d usuarios_rust_db_test -c "TRUNCATE TABLE users RESTART IDENTITY CASCADE;"
+```
+
 
 ## Estructura del Proyecto
 

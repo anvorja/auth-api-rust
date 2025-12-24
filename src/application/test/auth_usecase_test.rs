@@ -1,6 +1,6 @@
 // src/application/test/auth_usecase_test.rs
 use crate::application::AuthUseCase;
-use crate::infrastructure::{ArgonPasswordHasher, JwtServiceImpl, UserRepository, UserRepositorySqlx};
+use crate::infrastructure::{ArgonPasswordHasher, JwtServiceImpl, UserRepositorySqlx, UserRepository};
 use crate::infrastructure::db::create_pool;
 use crate::config::Settings;
 use crate::presentation::{LoginRequest, RegisterRequest};
@@ -105,6 +105,9 @@ async fn test_refresh_token() {
     let register_request = create_test_register_request();
 
     let (user, _, refresh_token) = usecase.register_user(register_request).await.unwrap();
+
+    // Pequeña pausa para asegurar que el timestamp sea diferente
+    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
 
     let result = usecase.refresh_token(&refresh_token).await;
     assert!(result.is_ok());
