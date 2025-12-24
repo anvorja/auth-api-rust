@@ -2,17 +2,17 @@
 
 API RESTful de autenticación enterprise-grade construida con Rust, siguiendo principios SOLID y Clean Architecture.
 
-## 🎯 Características
+## Características
 
-- ✅ **Arquitectura Limpia**: Separación clara entre dominio, aplicación e infraestructura
-- ✅ **Seguridad Enterprise**: JWT con access/refresh tokens, Argon2, CORS, CSP/HSTS
-- ✅ **Base de Datos**: PostgreSQL con SQLx y migraciones
-- ✅ **Documentación**: Swagger UI integrado con OpenAPI 3.0
-- ✅ **Validaciones**: Input validation exhaustiva con `validator`
-- ✅ **Tipo-seguro**: Aprovecha el sistema de tipos de Rust
-- ✅ **Escalable**: Preparado para microservicios
+- **Arquitectura Limpia**: Separación clara entre dominio, aplicación e infraestructura
+- **Seguridad Enterprise**: JWT con access/refresh tokens, Argon2, CORS, CSP/HSTS
+- **Base de Datos**: PostgreSQL con SQLx y migraciones
+- **Documentación**: Swagger UI integrado con OpenAPI 3.0
+- **Validaciones**: Input validation exhaustiva con `validator`
+- **Tipo-seguro**: Aprovecha el sistema de tipos de Rust
+- **Escalable**: Preparado para microservicios
 
-## 🚀 Stack Tecnológico
+## Stack Tecnológico
 
 | Categoría | Tecnología |
 |-----------|------------|
@@ -25,18 +25,18 @@ API RESTful de autenticación enterprise-grade construida con Rust, siguiendo pr
 | Config | dotenvy + envy |
 | Logging | tracing |
 
-## 📋 Prerrequisitos
+## Prerrequisitos
 
 - Rust 1.75+ (edition 2021)
 - PostgreSQL 14+
 - Cargo
 
-## 🔧 Instalación
+## Instalación
 
 ### 1. Clonar el repositorio
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/anvorja/auth-api-rust/
 cd auth-api-rust
 ```
 
@@ -62,7 +62,6 @@ cp .env.example .env
 nano .env
 ```
 
-**⚠️ IMPORTANTE**: Cambiar los secretos JWT en producción:
 
 ```bash
 # Generar secretos seguros
@@ -89,7 +88,7 @@ cargo build --release
 ./target/release/auth-api-rust
 ```
 
-## 📁 Estructura del Proyecto
+## Estructura del Proyecto
 
 ```
 auth-api-rust/
@@ -109,7 +108,7 @@ auth-api-rust/
 │   ├── domain/           # Entidades y lógica de negocio
 │   │   ├── mod.rs
 │   │   └── user.rs
-│   ├── application/      # Casos de uso
+│   ├── application/     
 │   │   ├── mod.rs
 │   │   └── auth_usecase.rs
 │   ├── infrastructure/  
@@ -138,7 +137,7 @@ auth-api-rust/
 │       └── seed_dev.rs
 ```
 
-## 🌐 Endpoints
+## Endpoints
 
 ### Autenticación
 
@@ -156,18 +155,18 @@ auth-api-rust/
 | GET | `/api/v1/health` | Health check |
 | GET | `/api/v1/swagger-ui` | Documentación Swagger UI |
 
-## 🔒 Seguridad
+## Seguridad
 
 ### Implementaciones
 
-- ✅ **JWT**: Access tokens (15 min) + Refresh tokens (7 días)
-- ✅ **Cookies HttpOnly**: Protección contra XSS
-- ✅ **Argon2**: Hashing de passwords (resistente a GPU/ASIC)
-- ✅ **CORS**: Configuración restrictiva
-- ✅ **CSP/HSTS**: Headers de seguridad
-- ✅ **SQL Injection**: Prevención con bind parameters
-- ✅ **Input Validation**: Validación exhaustiva con `validator`
-- ✅ **Rate Limiting**: Protección contra ataques de fuerza bruta
+- **JWT**: Access tokens (15 min) + Refresh tokens (7 días)
+- **Cookies HttpOnly**: Protección contra XSS
+- **Argon2**: Hashing de passwords (resistente a GPU/ASIC)
+- **CORS**: Configuración restrictiva
+- **CSP/HSTS**: Headers de seguridad
+- **SQL Injection**: Prevención con bind parameters
+- **Input Validation**: Validación exhaustiva con `validator`
+- **Rate Limiting**: Protección contra ataques de fuerza bruta
 
 ### Configuración de Seguridad
 
@@ -189,7 +188,7 @@ ARGON2_TIME_COST=3              # Iteraciones
 ARGON2_PARALLELISM=4            # Threads
 ```
 
-## 🧪 Testing
+## Testing
 
 ```bash
 # Ejecutar tests
@@ -202,14 +201,14 @@ cargo tarpaulin --out Html
 cargo test --test '*'
 ```
 
-## 🌱 Seed de Datos
+## Seed de Datos
 
 ```bash
 # Crear usuarios de prueba
 cargo run --bin seed_dev
 ```
 
-## 📊 Swagger UI
+## Swagger UI
 
 Una vez la aplicación esté corriendo:
 
@@ -217,7 +216,7 @@ Una vez la aplicación esté corriendo:
 http://localhost:9090/api/v1/swagger-ui/
 ```
 
-## 🏗️ Arquitectura
+## Arquitectura
 
 ### Principios SOLID
 
