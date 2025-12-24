@@ -59,22 +59,3 @@ pub fn create_permissive_cors_layer() -> CorsLayer {
         .allow_headers(Any)
         .allow_credentials(true)
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_create_cors_layer() {
-        unsafe {
-            std::env::set_var("ALLOWED_ORIGINS", "http://localhost:3000");
-            std::env::set_var("JWT_SECRET", "test-secret-key-minimum-32-characters-long");
-            std::env::set_var("DATABASE_URL", "postgresql://localhost/test");
-        }
-
-        let settings = Settings::from_env().unwrap();
-        let _cors = create_cors_layer(&settings);
-
-        // Si no panic, el layer se creó correctamente
-    }
-}

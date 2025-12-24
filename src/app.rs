@@ -78,7 +78,7 @@ pub fn log_app_info(settings: &Settings) {
 }
 
 /// Enmascara la contraseña en la URL de la base de datos para logging seguro
-fn mask_db_url(url: &str) -> String {
+pub(crate) fn mask_db_url(url: &str) -> String {
     if let Some(at_pos) = url.find('@') {
         if let Some(colon_pos) = url[..at_pos].rfind(':') {
             let mut masked = url.to_string();
@@ -87,23 +87,4 @@ fn mask_db_url(url: &str) -> String {
         }
     }
     url.to_string()
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_mask_db_url() {
-        let url = "postgresql://user:password@localhost:5432/db";
-        let masked = mask_db_url(url);
-        assert_eq!(masked, "postgresql://user:****@localhost:5432/db");
-    }
-
-    #[test]
-    fn test_mask_db_url_no_password() {
-        let url = "postgresql://localhost:5432/db";
-        let masked = mask_db_url(url);
-        assert_eq!(masked, "postgresql://localhost:5432/db");
-    }
 }

@@ -53,32 +53,32 @@ pub enum Environment {
     Test,
 }
 
-// Defaults
-fn default_host() -> String {
+// Defaults - públicas para tests
+pub(crate) fn default_host() -> String {
     "127.0.0.1".to_string()
 }
 
-fn default_port() -> u16 {
+pub(crate) fn default_port() -> u16 {
     9090
 }
 
-fn default_max_connections() -> u32 {
+pub(crate) fn default_max_connections() -> u32 {
     10
 }
 
-fn default_min_connections() -> u32 {
+pub(crate) fn default_min_connections() -> u32 {
     2
 }
 
-fn default_acquire_timeout() -> u64 {
+pub(crate) fn default_acquire_timeout() -> u64 {
     30
 }
 
-fn default_access_token_expiry() -> i64 {
+pub(crate) fn default_access_token_expiry() -> i64 {
     900 // 15 minutes
 }
 
-fn default_refresh_token_expiry() -> i64 {
+pub(crate) fn default_refresh_token_expiry() -> i64 {
     604800 // 7 days
 }
 
@@ -222,46 +222,4 @@ pub enum ConfigError {
 
     #[error("Entorno inválido: {0}. Valores permitidos: development, production, test")]
     InvalidEnvironment(String),
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_default_values() {
-        assert_eq!(default_host(), "127.0.0.1");
-        assert_eq!(default_port(), 9090);
-        assert_eq!(default_max_connections(), 10);
-        assert_eq!(default_access_token_expiry(), 900);
-    }
-
-    #[test]
-    fn test_socket_addr() {
-        let settings = Settings {
-            server: ServerSettings {
-                host: "0.0.0.0".to_string(),
-                port: 8080,
-            },
-            database: DatabaseSettings {
-                url: "".to_string(),
-                max_connections: 10,
-                min_connections: 2,
-                acquire_timeout: 30,
-            },
-            jwt: JwtSettings {
-                secret: "test-secret-at-least-32-chars-long".to_string(),
-                access_token_expiry: 900,
-                refresh_token_expiry: 604800,
-            },
-            security: SecuritySettings {
-                allowed_origins: vec!["http://localhost:3000".to_string()],
-            },
-            environment: Environment::Test,
-        };
-
-        assert_eq!(settings.socket_addr(), "0.0.0.0:8080");
-        assert!(!settings.is_development());
-        assert!(!settings.is_production());
-    }
 }

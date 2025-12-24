@@ -8,6 +8,9 @@ mod error;
 mod infrastructure;
 mod presentation;
 
+#[cfg(test)]
+mod test;
+
 use config::Settings;
 use tokio::net::TcpListener;
 

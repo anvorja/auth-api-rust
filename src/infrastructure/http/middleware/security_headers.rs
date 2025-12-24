@@ -129,21 +129,3 @@ pub async fn permissive_security_headers_middleware(
 
     response
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_security_headers_creation() {
-        // Test simple que verifica que la función compila correctamente
-        // Los tests de integración verificarán el comportamiento real
-
-        // Verificar que el middleware está disponible
-        let _middleware = security_headers_middleware;
-
-        // En debug mode, verificar que el permissive también existe
-        #[cfg(debug_assertions)]
-        let _permissive = permissive_security_headers_middleware;
-    }
-}
