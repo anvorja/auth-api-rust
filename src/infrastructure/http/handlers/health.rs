@@ -1,4 +1,3 @@
-// V1
 // src/infrastructure/http/handlers/health.rs
 use axum::{extract::State, Json};
 

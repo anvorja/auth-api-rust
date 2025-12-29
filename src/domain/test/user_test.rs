@@ -1,5 +1,5 @@
 // src/domain/test/user_test.rs
-use crate::domain::{User, Username, Email, PasswordHash, UserId};
+use crate::domain::{User, Username, Email, UserId, PasswordHash};
 
 #[test]
 fn test_user_creation() {
@@ -107,4 +107,79 @@ fn test_update_profile() {
     assert_eq!(user.first_name(), "Jane");
     assert_eq!(user.last_name(), "Smith");
     assert_eq!(user.full_name(), "Jane Smith");
+}
+
+#[test]
+fn test_user_from_repository() {
+    use chrono::Utc;
+
+    let user_id = UserId::new();
+    let username = Username::new("johndoe".to_string()).unwrap();
+    let email = Email::new("john@example.com".to_string()).unwrap();
+    let created_at = Utc::now();
+    let updated_at = Utc::now();
+
+    let user = User::from_repository(
+        user_id,
+        username.clone(),
+        email.clone(),
+        "John".to_string(),
+        "Doe".to_string(),
+        PasswordHash::from_hash("$argon2id$...".to_string()),
+        created_at,
+        updated_at,
+    );
+
+    assert_eq!(user.id(), user_id);
+    assert_eq!(user.username().value(), "johndoe");
+    assert_eq!(user.email().value(), "john@example.com");
+    assert_eq!(user.created_at(), created_at);
+    assert_eq!(user.updated_at(), updated_at);
+}
+
+#[test]
+fn test_password_hash() {
+    let hash_value = "$argon2id$v=19$m=19456,t=2,p=1$...".to_string();
+    let password_hash = PasswordHash::from_hash(hash_value.clone());
+
+    assert_eq!(password_hash.value(), hash_value);
+}
+
+#[test]
+fn test_username_edge_cases() {
+    // Username de exactamente 3 caracteres (mínimo)
+    assert!(Username::new("abc".to_string()).is_ok());
+
+    // Username de exactamente 30 caracteres (máximo)
+    let max_username = "a".to_string().repeat(30);
+    assert!(Username::new(max_username.clone()).is_ok());
+    assert_eq!(Username::new(max_username).unwrap().value().len(), 30);
+
+    // Username con guiones bajos
+    assert!(Username::new("user_name_test".to_string()).is_ok());
+
+    // Username con números
+    assert!(Username::new("user123".to_string()).is_ok());
+}
+
+#[test]
+fn test_email_edge_cases() {
+    // Email con múltiples puntos en el dominio
+    assert!(Email::new("user@mail.example.com".to_string()).is_ok());
+
+    // Email con números
+    assert!(Email::new("user123@example.com".to_string()).is_ok());
+
+    // Email con guiones
+    assert!(Email::new("user-name@example.com".to_string()).is_ok());
+}
+
+#[test]
+fn test_user_id_display() {
+    let user_id = UserId::new();
+    let uuid_string = user_id.to_string();
+
+    // Verificar que el formato UUID es correcto (36 caracteres con guiones)
+    assert_eq!(uuid_string.len(), 36);
+    assert_eq!(uuid_string.chars().filter(|&c| c == '-').count(), 4);
 }

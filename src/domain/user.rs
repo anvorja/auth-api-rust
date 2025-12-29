@@ -1,4 +1,3 @@
-// V1
 // src/domain/user.rs
 use chrono::{DateTime, Utc};
 use uuid::Uuid;

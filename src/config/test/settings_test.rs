@@ -1,4 +1,3 @@
-// V1
 // src/config/test/settings_test.rs
 use crate::config::settings::{
     default_host, default_port, default_max_connections,

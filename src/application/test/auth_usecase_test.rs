@@ -5,7 +5,7 @@ use crate::infrastructure::db::create_pool;
 use crate::config::Settings;
 use crate::presentation::{LoginRequest, RegisterRequest};
 use crate::error::AppError;
-use std::sync::Arc;
+use crate::domain::UserId;
 
 async fn create_test_auth_usecase() -> AuthUseCase<UserRepositorySqlx, ArgonPasswordHasher, JwtServiceImpl> {
     unsafe {
@@ -16,9 +16,9 @@ async fn create_test_auth_usecase() -> AuthUseCase<UserRepositorySqlx, ArgonPass
     let settings = Settings::from_env().expect("Failed to load test settings");
     let pool = create_pool(&settings).await.expect("Failed to create pool");
 
-    let user_repository = Arc::new(UserRepositorySqlx::new(pool));
-    let password_hasher = Arc::new(ArgonPasswordHasher::new_for_testing());
-    let jwt_service = Arc::new(JwtServiceImpl::new(
+    let user_repository = std::sync::Arc::new(UserRepositorySqlx::new(pool));
+    let password_hasher = std::sync::Arc::new(ArgonPasswordHasher::new_for_testing());
+    let jwt_service = std::sync::Arc::new(JwtServiceImpl::new(
         settings.jwt.secret,
         settings.jwt.access_token_expiry,
         settings.jwt.refresh_token_expiry,
@@ -106,7 +106,7 @@ async fn test_refresh_token() {
 
     let (user, _, refresh_token) = usecase.register_user(register_request).await.unwrap();
 
-    // Pequeña pausa para asegurar que el timestamp sea diferente
+    // Esperar un poco para que los timestamps sean diferentes
     tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
 
     let result = usecase.refresh_token(&refresh_token).await;
@@ -119,4 +119,120 @@ async fn test_refresh_token() {
 
     // Cleanup
     let _ = usecase.user_repository().delete(user.id()).await;
+}
+
+// ============================================================================
+// NUEVOS TESTS PARA FUNCIONALIDADES COMPLETADAS
+// ============================================================================
+
+#[tokio::test]
+#[ignore]
+async fn test_get_user_by_id() {
+    let usecase = create_test_auth_usecase().await;
+    let register_request = create_test_register_request();
+
+    // Registrar usuario
+    let (user, _, _) = usecase.register_user(register_request).await.unwrap();
+
+    // Obtener por ID
+    let result = usecase.get_user_by_id(user.id()).await;
+    assert!(result.is_ok());
+
+    let found_user = result.unwrap();
+    assert_eq!(found_user.id(), user.id());
+    assert_eq!(found_user.username().value(), "testuser");
+
+    // Cleanup
+    let _ = usecase.user_repository().delete(user.id()).await;
+}
+
+#[tokio::test]
+#[ignore]
+async fn test_get_user_by_id_not_found() {
+    let usecase = create_test_auth_usecase().await;
+
+    // ID que no existe
+    let fake_id = UserId::new();
+    let result = usecase.get_user_by_id(fake_id).await;
+
+    assert!(result.is_err());
+    assert!(matches!(result.unwrap_err(), AppError::UserNotFound));
+}
+
+#[tokio::test]
+#[ignore]
+async fn test_change_password_success() {
+    let usecase = create_test_auth_usecase().await;
+    let register_request = create_test_register_request();
+
+    // Registrar usuario
+    let (user, _, _) = usecase.register_user(register_request).await.unwrap();
+
+    // Cambiar password
+    let result = usecase
+        .change_password(
+            user.id(),
+            "SecurePass123!",
+            "NewSecurePass456!",
+        )
+        .await;
+
+    assert!(result.is_ok());
+
+    // Verificar que el nuevo password funciona
+    let login_request = LoginRequest {
+        username: "testuser".to_string(),
+        password: "NewSecurePass456!".to_string(),
+    };
+
+    let login_result = usecase.login_user(login_request).await;
+    assert!(login_result.is_ok());
+
+    // Cleanup
+    let _ = usecase.user_repository().delete(user.id()).await;
+}
+
+#[tokio::test]
+#[ignore]
+async fn test_change_password_wrong_current() {
+    let usecase = create_test_auth_usecase().await;
+    let register_request = create_test_register_request();
+
+    // Registrar usuario
+    let (user, _, _) = usecase.register_user(register_request).await.unwrap();
+
+    // Intentar cambiar con una contraseña incorrecta
+    let result = usecase
+        .change_password(
+            user.id(),
+            "WrongPassword123!",
+            "NewSecurePass456!",
+        )
+        .await;
+
+    assert!(result.is_err());
+    assert!(matches!(result.unwrap_err(), AppError::InvalidCredentials));
+
+    // Cleanup
+    let _ = usecase.user_repository().delete(user.id()).await;
+}
+
+#[tokio::test]
+#[ignore]
+async fn test_change_password_user_not_found() {
+    let usecase = create_test_auth_usecase().await;
+
+    // ID que no existe
+    let fake_id = UserId::new();
+
+    let result = usecase
+        .change_password(
+            fake_id,
+            "CurrentPass123!",
+            "NewSecurePass456!",
+        )
+        .await;
+
+    assert!(result.is_err());
+    assert!(matches!(result.unwrap_err(), AppError::UserNotFound));
 }

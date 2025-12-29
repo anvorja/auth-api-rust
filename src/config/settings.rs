@@ -1,4 +1,3 @@
-// V1
 //src/config/settings.rs
 use serde::Deserialize;
 use std::env;

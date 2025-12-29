@@ -1,4 +1,3 @@
-// V1
 // src/app.rs
 use std::sync::Arc;
 

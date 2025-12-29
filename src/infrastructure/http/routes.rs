@@ -1,4 +1,4 @@
-// V1
+// V2
 // src/infrastructure/http/routes.rs
 use axum::{
     middleware,
@@ -14,7 +14,15 @@ use crate::config::Settings;
 use crate::infrastructure::{
     db::DbPool,
     http::{
-        handlers::{health_handler, login_handler, logout_handler, refresh_handler, register_handler},
+        handlers::{
+            health_handler,
+            login_handler,
+            logout_handler,
+            refresh_handler,
+            register_handler,
+            get_profile_handler,
+            change_password_handler,
+        },
         middleware::{auth_middleware, create_cors_layer, security_headers_middleware},
     },
     JwtService, PasswordHasher, UserRepository,
@@ -89,6 +97,7 @@ where
 /// Estructura:
 /// - /api/v1/health       - Health check (público)
 /// - /api/v1/auth/*       - Endpoints de autenticación (públicos)
+/// - /api/v1/users/*      - Endpoints de usuario (protegidos)
 /// - /api/v1/swagger-ui/  - Documentación Swagger UI
 ///
 /// Middlewares aplicados:
@@ -119,11 +128,13 @@ where
         .route("/health", get(health_handler::<AppState<R, P, J>>))
         .nest("/auth", auth_routes);
 
-    // Rutas protegidas (requieren autenticación)
-    // Por ahora vacías, se pueden añadir más adelante
+    // Rutas protegidas de usuarios (requieren autenticación)
+    let user_routes: Router<AppState<R, P, J>> = Router::new()
+        .route("/profile", get(get_profile_handler::<R, P, J, AppState<R, P, J>>))
+        .route("/change-password", post(change_password_handler::<R, P, J, AppState<R, P, J>>));
+
     let protected_routes: Router<AppState<R, P, J>> = Router::new()
-        // Ejemplo de ruta protegida:
-        // .route("/profile", get(get_profile_handler))
+        .nest("/users", user_routes)
         .layer(middleware::from_fn_with_state(
             auth_usecase.clone(),
             auth_middleware::<R, P, J>,
@@ -153,12 +164,15 @@ where
         crate::infrastructure::http::handlers::login_handler,
         crate::infrastructure::http::handlers::refresh_handler,
         crate::infrastructure::http::handlers::logout_handler,
+        crate::infrastructure::http::handlers::get_profile_handler,
+        crate::infrastructure::http::handlers::change_password_handler,
     ),
     components(
         schemas(
             crate::presentation::RegisterRequest,
             crate::presentation::LoginRequest,
             crate::presentation::RefreshRequest,
+            crate::presentation::ChangePasswordRequest,
             crate::presentation::AuthResponse,
             crate::presentation::UserResponse,
             crate::presentation::SuccessResponse,
@@ -167,6 +181,7 @@ where
     ),
     tags(
         (name = "Authentication", description = "Endpoints de autenticación de usuarios"),
+        (name = "Users", description = "Gestión de perfil de usuario"),
         (name = "Health", description = "Health check del servicio")
     ),
     info(

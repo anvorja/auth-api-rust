@@ -1,6 +1,4 @@
-// V1
 // src/infrastructure/security/jwt.rs
-use chrono::Utc;
 use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
 use serde::{Deserialize, Serialize};
 

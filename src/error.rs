@@ -1,4 +1,3 @@
-// V1
 // src/error.rs
 use axum::{
     http::StatusCode,

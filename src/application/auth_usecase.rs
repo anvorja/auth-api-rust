@@ -1,4 +1,3 @@
-// V1
 // src/application/auth_usecase.rs
 use std::sync::Arc;
 
@@ -47,10 +46,8 @@ where
         }
     }
 
-    /// Getter para el repositorio (usado en tests)
-    /// Retorna una referencia al repositorio para poder llamar sus métodos
-    #[cfg(test)]
-    pub fn user_repository(&self) -> &R {
+    /// Getter para el repositorio (usado principalmente en tests)
+    pub(crate) fn user_repository(&self) -> &Arc<R> {
         &self.user_repository
     }
 

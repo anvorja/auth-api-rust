@@ -146,7 +146,10 @@ fn test_multiple_tokens_for_same_user() {
 
     // Generar dos tokens para el mismo usuario
     let token1 = service.generate_access_token(user_id, username.clone()).unwrap();
-    std::thread::sleep(std::time::Duration::from_millis(10)); // Pequeña pausa
+
+    // Esperar al menos 1 segundo para que el timestamp (en segundos) sea diferente
+    std::thread::sleep(std::time::Duration::from_secs(1));
+
     let token2 = service.generate_access_token(user_id, username).unwrap();
 
     // Los tokens deben ser diferentes (diferentes timestamps)

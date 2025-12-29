@@ -1,4 +1,3 @@
-// V1
 // src/main.rs
 mod app;
 mod application;

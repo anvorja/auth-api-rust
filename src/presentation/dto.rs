@@ -1,4 +1,3 @@
-// V1
 // src/presentation/dto.rs
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -71,6 +70,35 @@ pub struct RefreshRequest {
     #[validate(length(min = 1, message = "Refresh token requerido"))]
     #[schema(example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...")]
     pub refresh_token: String,
+}
+
+/// DTO para cambiar contraseña
+#[derive(Debug, Deserialize, Validate, ToSchema)]
+pub struct ChangePasswordRequest {
+    /// Contraseña actual
+    #[validate(length(min = 1, max = 128, message = "Contraseña actual requerida"))]
+    #[schema(example = "CurrentPass123!", format = "password")]
+    pub current_password: String,
+
+    /// Nueva contraseña
+    #[validate(
+        length(min = 8, max = 128, message = "La nueva contraseña debe tener entre 8 y 128 caracteres"),
+        custom(function = "validate_password_strength")
+    )]
+    #[schema(example = "NewSecurePass123!", min_length = 8, max_length = 128, format = "password")]
+    pub new_password: String,
+
+    /// Confirmación de nueva contraseña
+    #[validate(length(min = 8, max = 128, message = "Confirmación requerida"))]
+    #[schema(example = "NewSecurePass123!", format = "password")]
+    pub new_password_confirmation: String,
+}
+
+impl ChangePasswordRequest {
+    /// Valida que las contraseñas coincidan
+    pub fn passwords_match(&self) -> bool {
+        self.new_password == self.new_password_confirmation
+    }
 }
 
 // ============================================================================
