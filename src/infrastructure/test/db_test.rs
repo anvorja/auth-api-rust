@@ -14,7 +14,7 @@ fn create_test_settings() -> Settings {
 }
 
 #[tokio::test]
-#[ignore] // Ignorar por defecto (requiere PostgreSQL corriendo)
+// #[ignore] // Ignorar por defecto (requiere PostgreSQL corriendo)
 async fn test_create_pool() {
     let settings = create_test_settings();
     let pool = create_pool(&settings).await;
@@ -27,7 +27,7 @@ async fn test_create_pool() {
 }
 
 #[tokio::test]
-#[ignore] // Ignorar por defecto
+// #[ignore] // Ignorar por defecto
 async fn test_verify_connection() {
     let settings = create_test_settings();
     let pool = create_pool(&settings).await.unwrap();
@@ -39,7 +39,7 @@ async fn test_verify_connection() {
 }
 
 #[tokio::test]
-#[ignore] // Ignorar por defecto
+//#[ignore] // Ignorar por defecto
 async fn test_health_check() {
     let settings = create_test_settings();
     let pool = create_pool(&settings).await.unwrap();
@@ -51,7 +51,7 @@ async fn test_health_check() {
 }
 
 #[tokio::test]
-#[ignore] // Ignorar por defecto
+// #[ignore] // Ignorar por defecto
 async fn test_pool_stats() {
     let settings = create_test_settings();
     let pool = create_pool(&settings).await.unwrap();
