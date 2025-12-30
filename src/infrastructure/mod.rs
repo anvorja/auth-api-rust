@@ -8,5 +8,11 @@ pub mod security;
 mod test;
 
 pub use db::DbPool;
-pub use repositories::*;
-pub use security::*;
+pub use repositories::{UserRepository, UserRepositorySqlx};
+
+pub use security::{
+    JwtService,
+    JwtServiceImpl,
+    PasswordHasher,
+    ArgonPasswordHasher
+};

@@ -5,7 +5,7 @@ use crate::application::AuthUseCase;
 use crate::config::Settings;
 use crate::error::AppResult;
 use crate::infrastructure::{
-    db::{create_pool, DbPool},
+    db::{create_pool},
     http::routes::create_router,
     security::{ArgonPasswordHasher, JwtServiceImpl},
     repositories::UserRepositorySqlx,
