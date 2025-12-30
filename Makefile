@@ -1,7 +1,9 @@
 # Makefile para Auth API Rust
 # Comandos útiles para desarrollo y despliegue
 
-.PHONY: help setup check build run test clean migrate seed validate test-db test-all test-db-clean test-db-setup
+.PHONY: help setup check build run test clean migrate seed validate \
+        test-db test-all test-db-clean test-db-setup test-watch test-one \
+        test-list test-list-module test-list-pattern test-help
 
 # Colores
 GREEN  := \033[0;32m
@@ -15,7 +17,7 @@ help: ## Mostrar ayuda
 	@echo ""
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort |awk 'BEGIN {FS = ":.*?## "}; {printf "  $(YELLOW)%-20s$(NC) %s\n", $$1, $$2}'
 	@echo ""
-	@echo "$(BLUE)Tip: Use 'make help-test' para ayuda de testing$(NC)"
+	@echo "$(BLUE)Tip: Use 'make test-help' para ayuda de testing$(NC)"
 
 setup: ## Configuración inicial del proyecto
 	@echo "$(GREEN)Setting up project...$(NC)"
@@ -152,13 +154,53 @@ test-watch: ## Ejecutar tests en modo watch
 	@echo "$(GREEN)Running tests in watch mode...$(NC)"
 	@cargo watch -x test
 
-test-one: ## Ejecutar un test específico (use TEST=nombre_test)
-	@if [ -z "$(TEST)" ]; then \
-		echo "$(RED)Error: Specify test name with TEST=nombre_test$(NC)"; \
+# ============================================================================
+# TESTS ESPECÍFICOS
+# ============================================================================
+
+test-one: ## Ejecutar un test específico (use TEST=nombre_completo o PATTERN=patron)
+	@if [ -n "$(TEST)" ]; then \
+		echo "$(GREEN)Running specific test: $(TEST)$(NC)"; \
+		TEST_ARG="$(TEST)"; \
+		cargo test "$$TEST_ARG" -- --nocapture; \
+	elif [ -n "$(PATTERN)" ]; then \
+		echo "$(GREEN)Running tests matching pattern: '$(PATTERN)'$(NC)"; \
+		PATTERN_ARG="$(PATTERN)"; \
+		cargo test "$$PATTERN_ARG" -- --nocapture; \
+	elif [ -n "$(MODULE)" ]; then \
+		echo "$(GREEN)Running tests in module: $(MODULE)$(NC)"; \
+		MODULE_ARG="$(MODULE)"; \
+		cargo test "$$MODULE_ARG" -- --nocapture; \
+	else \
+		echo "$(RED)Error: Specify test with one of:$(NC)"; \
+		echo "  TEST=full_test_path           (e.g., TEST=application::test::auth_usecase_test::test_register_user)"; \
+		echo "  PATTERN=pattern               (e.g., PATTERN=auth_usecase)"; \
+		echo "  MODULE=module_path            (e.g., MODULE=application::test::auth_usecase_test)"; \
 		exit 1; \
 	fi
-	@echo "$(GREEN)Running test: $(TEST)$(NC)"
-	@cargo test $(TEST) -- --nocapture
+
+test-list: ## Listar todos los tests disponibles
+	@echo "$(GREEN)Available tests:$(NC)"
+	@cargo test -- --list 2>/dev/null | grep "test$$" | sort
+
+test-list-module: ## Listar tests de un módulo específico (use MODULE=nombre)
+	@if [ -z "$(MODULE)" ]; then \
+		echo "$(RED)Error: Specify module with MODULE=nombre$(NC)"; \
+		echo "Example: make test-list-module MODULE=application::test::auth_usecase_test"; \
+		exit 1; \
+	fi
+	@echo "$(GREEN)Tests in module $(MODULE):$(NC)"
+	@MODULE_ARG="$(MODULE)"; \
+	cargo test "$$MODULE_ARG" -- --list 2>/dev/null | grep "test$$" | sort
+
+test-list-pattern: ## Listar tests que coincidan con un patrón (use PATTERN=nombre)
+	@if [ -z "$(PATTERN)" ]; then \
+		echo "$(RED)Error: Specify pattern with PATTERN=nombre$(NC)"; \
+		echo "Example: make test-list-pattern PATTERN=password"; \
+		exit 1; \
+	fi
+	@echo "$(GREEN)Tests matching '$(PATTERN)':$(NC)"
+	@cargo test -- --list 2>/dev/null | grep -i "$(PATTERN)" | grep "test$$" | sort
 
 test-help: ## Ayuda de comandos de testing
 	@echo "$(GREEN)════════════════════════════════════════$(NC)"
@@ -267,6 +309,6 @@ update: ## Actualizar dependencias
 
 tree: ## Mostrar estructura del proyecto
 	@echo "$(GREEN)Project structure:$(NC)"
-	@tree -I 'target|node_modules' -L 3
+	@tree -I 'target|node_modules'
 
 .DEFAULT_GOAL := help
