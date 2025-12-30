@@ -1,4 +1,3 @@
-// V1
 // src/infrastructure/http/middleware/mod.rs
 pub mod auth;
 pub mod cors;

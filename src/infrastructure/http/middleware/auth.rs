@@ -1,4 +1,3 @@
-// V1
 // src/infrastructure/http/middleware/auth.rs
 use axum::{
     extract::{Request, State},

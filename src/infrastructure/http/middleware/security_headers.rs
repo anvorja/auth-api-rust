@@ -1,4 +1,3 @@
-// V1
 // src/infrastructure/http/middleware/security_headers.rs
 use axum::{
     extract::Request,

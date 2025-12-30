@@ -1,4 +1,3 @@
-// V1
 // src/infrastructure/http/handlers/user.rs
 use axum::{
     extract::State,

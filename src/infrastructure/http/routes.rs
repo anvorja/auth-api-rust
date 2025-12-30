@@ -1,4 +1,3 @@
-// V2
 // src/infrastructure/http/routes.rs
 use axum::{
     middleware,

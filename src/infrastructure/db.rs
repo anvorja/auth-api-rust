@@ -1,4 +1,3 @@
-// V1
 // src/infrastructure/db.rs
 use sqlx::postgres::{PgPool, PgPoolOptions};
 use std::time::Duration;

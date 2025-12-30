@@ -1,4 +1,3 @@
-// V1
 // src/infrastructure/http/middleware/cors.rs
 use tower_http::cors::{Any, CorsLayer};
 use axum::http::{HeaderValue, Method};
