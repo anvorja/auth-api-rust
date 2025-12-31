@@ -39,6 +39,23 @@ pub async fn security_headers_middleware(
          style-src 'self' 'unsafe-inline'; \
          img-src 'self' data: https:; \
          font-src 'self' data:; \
+         connect-src 'self' http://localhost:* http://127.0.0.1:*; \
+         frame-ancestors 'none'; \
+         base-uri 'self'; \
+         form-action 'self'"
+            .parse()
+            .unwrap(),
+    );
+    
+    // Producción: CSP más restrictivo
+    #[cfg(not(debug_assertions))]
+    headers.insert(
+        header::CONTENT_SECURITY_POLICY,
+        "default-src 'self'; \
+         script-src 'self' 'unsafe-inline' 'unsafe-eval'; \
+         style-src 'self' 'unsafe-inline'; \
+         img-src 'self' data: https:; \
+         font-src 'self' data:; \
          connect-src 'self'; \
          frame-ancestors 'none'; \
          base-uri 'self'; \
@@ -48,43 +65,36 @@ pub async fn security_headers_middleware(
     );
 
     // X-Frame-Options
-    // Previene clickjacking attacks
     headers.insert(
         header::X_FRAME_OPTIONS,
         "DENY".parse().unwrap(),
     );
 
     // X-Content-Type-Options
-    // Previene MIME sniffing
     headers.insert(
         header::X_CONTENT_TYPE_OPTIONS,
         "nosniff".parse().unwrap(),
     );
 
     // X-XSS-Protection
-    // Habilita el filtro XSS del navegador (legacy, pero no hace daño)
     headers.insert(
         axum::http::HeaderName::from_static("x-xss-protection"),
         "1; mode=block".parse().unwrap(),
     );
 
     // Referrer-Policy
-    // Controla cuánta información de referrer se envía
     headers.insert(
         header::REFERRER_POLICY,
         "strict-origin-when-cross-origin".parse().unwrap(),
     );
 
-    // Permissions-Policy (antes Feature-Policy)
-    // Controla qué APIs del navegador puede usar el sitio
+    // Permissions-Policy
     headers.insert(
         axum::http::HeaderName::from_static("permissions-policy"),
         "geolocation=(), microphone=(), camera=(), payment=()".parse().unwrap(),
     );
 
-    // Strict-Transport-Security (HSTS)
-    // Fuerza HTTPS por 1 año
-    // ⚠️ Solo habilitar en producción con HTTPS
+    // HSTS solo en producción
     #[cfg(not(debug_assertions))]
     headers.insert(
         header::STRICT_TRANSPORT_SECURITY,
