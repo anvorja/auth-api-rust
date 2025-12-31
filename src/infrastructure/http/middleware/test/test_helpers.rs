@@ -1,24 +1,54 @@
-// src/infrastructure/http/middleware/security_headers.rs
+// src/infrastructure/http/middleware/test/test_helpers.rs
+//! Test helpers para security headers
+//!
+//! Este módulo contiene utilidades para testing que NO deben
+//! estar en el código de producción.
+
 use axum::{
+    body::Body,
     extract::Request,
-    http::header,
+    http::{header, Response},
     middleware::Next,
-    response::Response,
 };
 
-/// Middleware de security headers que se adapta al entorno
-pub async fn security_headers_middleware(
+/// Configuración de test para security headers
+pub struct SecurityHeadersTestConfig {
+    pub is_production: bool,
+}
+
+impl Default for SecurityHeadersTestConfig {
+    fn default() -> Self {
+        Self {
+            is_production: false,
+        }
+    }
+}
+
+impl SecurityHeadersTestConfig {
+    pub fn development() -> Self {
+        Self {
+            is_production: false,
+        }
+    }
+
+    pub fn production() -> Self {
+        Self {
+            is_production: true,
+        }
+    }
+}
+
+/// Aplica security headers con configuración inyectada (solo para tests)
+///
+/// Esta función replica la lógica de security_headers_middleware
+/// pero acepta configuración explícita en lugar de leer de env vars.
+pub async fn apply_test_security_headers(
     request: Request,
     next: Next,
-) -> Response {
+    config: SecurityHeadersTestConfig,
+) -> Response<Body> {
     let mut response = next.run(request).await;
     let headers = response.headers_mut();
-
-    // Detectar entorno desde variable de entorno
-    let is_production = std::env::var("ENVIRONMENT")
-        .unwrap_or_else(|_| "development".to_string())
-        .to_lowercase()
-        == "production";
 
     // Headers básicos (siempre)
     headers.insert(
@@ -34,8 +64,8 @@ pub async fn security_headers_middleware(
         "strict-origin-when-cross-origin".parse().unwrap(),
     );
 
-    // CSP según entorno
-    if is_production {
+    // CSP según configuración
+    if config.is_production {
         // 🔐 Producción: CSP restrictivo
         headers.insert(
             header::CONTENT_SECURITY_POLICY,
@@ -65,10 +95,8 @@ pub async fn security_headers_middleware(
             axum::http::HeaderName::from_static("permissions-policy"),
             "geolocation=(), microphone=(), camera=(), payment=()".parse().unwrap(),
         );
-
-        tracing::debug!("🔐 Security Headers: Producción (restrictivo)");
     } else {
-
+        // 🔓 Desarrollo: CSP permisivo
         headers.insert(
             header::CONTENT_SECURITY_POLICY,
             "default-src 'self'; \
@@ -83,8 +111,6 @@ pub async fn security_headers_middleware(
                 .parse()
                 .unwrap(),
         );
-
-        tracing::debug!("🔓 Security Headers: Desarrollo (permisivo para Swagger)");
     }
 
     response

@@ -9,7 +9,7 @@ use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
 use crate::application::AuthUseCase;
-use crate::config::Settings;
+use crate::config::{Environment, Settings};
 use crate::infrastructure::{
     db::DbPool,
     http::{
@@ -138,6 +138,24 @@ where
             auth_usecase.clone(),
             auth_middleware::<R, P, J>,
         ));
+
+    match settings.environment {
+        Environment::Development => {
+            tracing::info!("🚀  Entorno: Desarrollo");
+            tracing::info!("    • CSP: Permisivo para Swagger UI");
+            tracing::info!("    • CORS: Permite localhost");
+        }
+        Environment::Test => {
+            tracing::info!("🧪  Entorno: Testing");
+            tracing::info!("    • CSP: Restrictivo");
+            tracing::info!("    • CORS: Desde configuración");
+        }
+        Environment::Production => {
+            tracing::info!("🔐  Entorno: Producción");
+            tracing::info!("    • CSP: Máxima seguridad");
+            tracing::info!("    • CORS: Muy restrictivo");
+        }
+    }
 
     // API v1
     let api_v1 = Router::new()
