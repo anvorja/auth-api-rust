@@ -35,3 +35,8 @@ Cargo.lock
 *.db
 *.db-shm
 *.db-wal
+backup_project_files_script.sh
+.idea
+miproyecto*/
+*_copy
+*_copy/

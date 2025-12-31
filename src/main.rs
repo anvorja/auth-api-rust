@@ -22,7 +22,7 @@ async fn main() {
         .compact()
         .init();
 
-    tracing::info!("🚀 Iniciando Auth API en Rust...");
+    tracing::info!("🚀  Iniciando Auth API en Rust...");
 
     // Cargar configuración
     let settings = match Settings::from_env() {
@@ -49,7 +49,7 @@ async fn main() {
     let addr = settings.socket_addr();
     let listener = match TcpListener::bind(&addr).await {
         Ok(listener) => {
-            tracing::info!("✅ Servidor escuchando en {}", addr);
+            tracing::info!("✓ Servidor escuchando en {}", addr);
             listener
         }
         Err(e) => {
@@ -58,7 +58,7 @@ async fn main() {
         }
     };
 
-    tracing::info!("🎉 Servidor listo para recibir peticiones!");
+    tracing::info!("✓ Servidor listo para recibir peticiones!");
     tracing::info!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
     // Iniciar el servidor

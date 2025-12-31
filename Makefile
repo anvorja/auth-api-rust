@@ -50,7 +50,7 @@ build-release: ## Compilar para producción (optimizado)
 
 run: validate ## Ejecutar la aplicación
 	@echo "$(GREEN)Running application...$(NC)"
-	@cargo run
+	@cargo run --bin auth-api-rust
 
 dev: ## Ejecutar con auto-reload (requiere cargo-watch)
 	@echo "$(GREEN)Running in watch mode...$(NC)"

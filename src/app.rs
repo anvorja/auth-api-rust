@@ -55,7 +55,7 @@ pub async fn build_app(settings: Settings) -> AppResult<Router> {
     let router = create_router(pool, auth_usecase, jwt_service, &settings);
     tracing::info!("✓ Router construido exitosamente");
 
-    tracing::info!("🎉 Aplicación inicializada correctamente");
+    tracing::info!("✓ Aplicación inicializada correctamente");
 
     Ok(router)
 }
@@ -63,16 +63,16 @@ pub async fn build_app(settings: Settings) -> AppResult<Router> {
 /// Información de la aplicación para logging
 pub fn log_app_info(settings: &Settings) {
     tracing::info!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-    tracing::info!("📋 Auth API - Rust Edition");
+    tracing::info!("📋  Auth API - Rust Edition");
     tracing::info!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-    tracing::info!("🌐 Servidor: {}", settings.socket_addr());
+    tracing::info!("🌐  Servidor: {}", settings.socket_addr());
     tracing::info!("🗄️  Base de datos: {}", mask_db_url(&settings.database.url));
-    tracing::info!("🔐 JWT configurado: {} segundos", settings.jwt.access_token_expiry);
-    tracing::info!("🌍 Entorno: {:?}", settings.environment);
+    tracing::info!("🔐  JWT configurado: {} segundos", settings.jwt.access_token_expiry);
+    tracing::info!("🌍  Entorno: {:?}", settings.environment);
     tracing::info!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-    tracing::info!("📚 Documentación API:");
-    tracing::info!("   Swagger UI: http://{}/api/v1/swagger-ui/", settings.socket_addr());
-    tracing::info!("   OpenAPI JSON: http://{}/api/v1/openapi.json", settings.socket_addr());
+    tracing::info!("📚  Documentación API:");
+    tracing::info!("    Swagger UI: http://{}/api/v1/swagger-ui/", settings.socket_addr());
+    tracing::info!("    OpenAPI JSON: http://{}/api/v1/openapi.json", settings.socket_addr());
     tracing::info!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 }
 
