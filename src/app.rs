@@ -21,15 +21,15 @@ use axum::Router;
 /// 4. Crea el caso de uso de autenticación
 /// 5. Construye el router con todos los endpoints
 pub async fn build_app(settings: Settings) -> AppResult<Router> {
-    tracing::info!("🚀 Iniciando aplicación...");
+    tracing::info!("Iniciando aplicación...");
 
     // 1. Crear pool de base de datos
     tracing::info!("📦 Creando pool de conexiones a la base de datos...");
     let pool = create_pool(&settings).await?;
-    tracing::info!("✅ Pool de conexiones creado exitosamente");
+    tracing::info!("✓ Pool de conexiones creado exitosamente");
 
     // 2. Crear servicios de infraestructura
-    tracing::info!("🔧 Inicializando servicios...");
+    tracing::info!("-> Inicializando servicios...");
 
     let user_repository = Arc::new(UserRepositorySqlx::new(pool.clone()));
     let password_hasher = Arc::new(ArgonPasswordHasher::new());
@@ -39,7 +39,7 @@ pub async fn build_app(settings: Settings) -> AppResult<Router> {
         settings.jwt.refresh_token_expiry,
     ));
 
-    tracing::info!("✅ Servicios inicializados");
+    tracing::info!("✓ Servicios inicializados");
 
     // 3. Crear caso de uso de autenticación
     let auth_usecase = Arc::new(AuthUseCase::new(
@@ -48,12 +48,12 @@ pub async fn build_app(settings: Settings) -> AppResult<Router> {
         jwt_service.clone(),
     ));
 
-    tracing::info!("✅ Casos de uso configurados");
+    tracing::info!("✓ Casos de uso configurados");
 
     // 4. Construir el router
     tracing::info!("🌐 Construyendo router...");
     let router = create_router(pool, auth_usecase, jwt_service, &settings);
-    tracing::info!("✅ Router construido exitosamente");
+    tracing::info!("✓ Router construido exitosamente");
 
     tracing::info!("🎉 Aplicación inicializada correctamente");
 

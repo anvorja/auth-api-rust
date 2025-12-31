@@ -181,7 +181,7 @@ async fn test_update_user() {
 
     assert!(result.is_ok());
 
-    // Verificar que se actualizÃ³
+    // Verificar que se actualizó
     let found = repo.find_by_id(user.id()).await.unwrap().unwrap();
     assert_eq!(found.first_name(), "Updated");
     assert_eq!(found.last_name(), "Name");
@@ -202,7 +202,35 @@ async fn test_delete_user() {
     let result = repo.delete(user.id()).await;
     assert!(result.is_ok());
 
-    // Verificar que se eliminÃ³
+    // Verificar que se eliminó
     let found = repo.find_by_id(user.id()).await.unwrap();
+    assert!(found.is_none());
+}
+#[tokio::test]
+#[ignore]
+async fn test_find_by_email() {
+    let pool = create_test_pool().await;
+    let repo = UserRepositorySqlx::new(pool);
+    let user = create_test_user().await;
+
+    repo.create(&user).await.unwrap();
+
+    let found = repo.find_by_email(user.email()).await.unwrap();
+    assert!(found.is_some());
+    assert_eq!(found.unwrap().email().value(), user.email().value());
+
+    // Cleanup
+    let _ = repo.delete(user.id()).await;
+}
+
+#[tokio::test]
+#[ignore]
+async fn test_find_by_email_not_found() {
+    let pool = create_test_pool().await;
+    let repo = UserRepositorySqlx::new(pool);
+
+    let non_existent_email = Email::new("nonexistent@example.com".to_string()).unwrap();
+    let found = repo.find_by_email(&non_existent_email).await.unwrap();
+
     assert!(found.is_none());
 }

@@ -77,6 +77,29 @@ pub struct ErrorDetail {
 }
 
 impl AppError {
+    // ============================================================================
+    // Constructores Convenientes
+    // ============================================================================
+
+    /// Constructor para errores de configuración
+    pub fn config(msg: impl Into<String>) -> Self {
+        Self::ConfigError(msg.into())
+    }
+
+    /// Constructor para errores internos del servidor
+    pub fn internal() -> Self {
+        Self::InternalServerError
+    }
+
+    /// Constructor para servicio no disponible
+    pub fn unavailable() -> Self {
+        Self::ServiceUnavailable
+    }
+
+    // ============================================================================
+    // Métodos de Conversión
+    // ============================================================================
+
     /// Convierte el error en un código HTTP
     pub fn status_code(&self) -> StatusCode {
         match self {
@@ -267,3 +290,40 @@ impl From<validator::ValidationErrors> for AppError {
 
 /// Alias para Result con AppError
 pub type AppResult<T> = Result<T, AppError>;
+/// Conversión desde errores de configuración
+impl From<crate::config::settings::ConfigError> for AppError {
+    fn from(err: crate::config::settings::ConfigError) -> Self {
+        AppError::ConfigError(err.to_string())
+    }
+}
+
+/// Conversión desde errores de variables de entorno
+impl From<std::env::VarError> for AppError {
+    fn from(err: std::env::VarError) -> Self {
+        AppError::ConfigError(format!("Variable de entorno no encontrada: {}", err))
+    }
+}
+
+/// Conversión desde std::io::Error (para archivos de configuración, etc.)
+impl From<std::io::Error> for AppError {
+    fn from(err: std::io::Error) -> Self {
+        tracing::error!("IO Error: {}", err);
+        AppError::config(format!("IO Error: {}", err))
+    }
+}
+
+/// Para errores inesperados/desconocidos que no podemos categorizar mejor
+impl From<anyhow::Error> for AppError {
+    fn from(err: anyhow::Error) -> Self {
+        tracing::error!("Error no manejado: {:?}", err);
+        AppError::internal()
+    }
+}
+
+/// Para Box<dyn Error> - errores dinámicos genéricos
+impl From<Box<dyn std::error::Error + Send + Sync>> for AppError {
+    fn from(err: Box<dyn std::error::Error + Send + Sync>) -> Self {
+        tracing::error!("Error dinámico no manejado: {:?}", err);
+        AppError::internal()
+    }
+}

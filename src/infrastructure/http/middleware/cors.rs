@@ -49,7 +49,18 @@ pub fn create_cors_layer(settings: &Settings) -> CorsLayer {
 
 /// Crea un CORS permisivo para desarrollo
 ///
-/// ⚠️ NUNCA usar en producción
+/// NUNCA usar en producción
+///
+/// Uso
+///
+/// Esta función es una utilidad para desarrollo/debug cuando se necesita
+/// CORS completamente permisivo temporalmente.
+///
+/// ```rust,ignore
+/// // Para debug temporal en routes.rs:
+/// use crate::infrastructure::http::middleware::create_permissive_cors_layer;
+/// Router::new().layer(create_permissive_cors_layer())
+/// ```
 #[cfg(debug_assertions)]
 pub fn create_permissive_cors_layer() -> CorsLayer {
     CorsLayer::new()
