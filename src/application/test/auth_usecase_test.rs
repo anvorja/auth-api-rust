@@ -382,7 +382,7 @@ async fn test_multiple_jwt_secrets_in_parallel() {
         secret2,
     );
 
-    // Ejecutar ambos en paralelo con tokio::join!
+    // Ejecutar ambos en paralelo con "tokio::join"
     let (usecase1, usecase2) = tokio::join!(usecase1, usecase2);
 
     // Registrar usuarios con diferentes configuraciones JWT

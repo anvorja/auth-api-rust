@@ -38,18 +38,27 @@ pub async fn create_pool(settings: &Settings) -> Result<DbPool, AppError> {
             // Clasificar el error apropiadamente
             match e {
                 sqlx::Error::PoolTimedOut => {
-                    tracing::error!("Pool timeout - servicio no disponible");
+                    tracing::error!("Timeout del pool - base de datos no responde");
                     AppError::unavailable()  // ✓ 503 Service Unavailable
                 }
                 sqlx::Error::PoolClosed => {
-                    tracing::error!("Pool cerrado - servicio no disponible");
+                    tracing::error!("Pool cerrado - posible reinicio de base de datos");
                     AppError::unavailable()  // ✓ 503 Service Unavailable
                 }
                 sqlx::Error::Configuration(_) => {
                     // Error de configuración de la base de datos
                     tracing::error!("Configuración de DB inválida");
-                    AppError::config(format!("Configuración de DB inválida: {}", e))  // ✓ ConfigError
+                    AppError::config(format!("URL de base de datos inválida: {}", e))  // ✓ ConfigError
                 }
+                sqlx::Error::Database(db_err) => {
+                    if db_err.is_unique_violation() {
+                        // Esto no debería pasar al conectar, pero por si acaso
+                        AppError::config("Configuración de DB duplicada o conflictiva".to_string())
+                    } else {
+                        AppError::DatabaseConnectionError
+                    }
+                }
+                // Otros errores de conexión (network, auth, etc.)
                 _ => AppError::DatabaseConnectionError,  // 500 Internal Server Error
             }
         })?;
