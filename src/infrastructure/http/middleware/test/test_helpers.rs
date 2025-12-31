@@ -40,7 +40,7 @@ impl SecurityHeadersTestConfig {
 
 /// Aplica security headers con configuración inyectada (solo para tests)
 ///
-/// Esta función replica la lógica de security_headers_middleware
+/// Esta función replica la lógica de security_headers_middleware,
 /// pero acepta configuración explícita en lugar de leer de env vars.
 pub async fn apply_test_security_headers(
     request: Request,

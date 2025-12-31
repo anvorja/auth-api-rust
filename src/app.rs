@@ -29,7 +29,7 @@ pub async fn build_app(settings: Settings) -> AppResult<Router> {
     tracing::info!("✓ Pool de conexiones creado exitosamente");
 
     // 2. Crear servicios de infraestructura
-    tracing::info!("-> Inicializando servicios...");
+    tracing::info!("⚙ Inicializando servicios...");
 
     let user_repository = Arc::new(UserRepositorySqlx::new(pool.clone()));
     let password_hasher = Arc::new(ArgonPasswordHasher::new());
@@ -51,7 +51,7 @@ pub async fn build_app(settings: Settings) -> AppResult<Router> {
     tracing::info!("✓ Casos de uso configurados");
 
     // 4. Construir el router
-    tracing::info!("🌐 Construyendo router...");
+    tracing::info!("📦  Construyendo router...");
     let router = create_router(pool, auth_usecase, jwt_service, &settings);
     tracing::info!("✓ Router construido exitosamente");
 
@@ -62,18 +62,18 @@ pub async fn build_app(settings: Settings) -> AppResult<Router> {
 
 /// Información de la aplicación para logging
 pub fn log_app_info(settings: &Settings) {
-    tracing::info!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    tracing::info!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
     tracing::info!("📋  Auth API - Rust Edition");
-    tracing::info!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    tracing::info!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
     tracing::info!("🌐  Servidor: {}", settings.socket_addr());
     tracing::info!("🗄️  Base de datos: {}", mask_db_url(&settings.database.url));
     tracing::info!("🔐  JWT configurado: {} segundos", settings.jwt.access_token_expiry);
     tracing::info!("🌍  Entorno: {:?}", settings.environment);
-    tracing::info!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    tracing::info!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
     tracing::info!("📚  Documentación API:");
     tracing::info!("    Swagger UI: http://{}/api/v1/swagger-ui/", settings.socket_addr());
     tracing::info!("    OpenAPI JSON: http://{}/api/v1/openapi.json", settings.socket_addr());
-    tracing::info!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    tracing::info!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 }
 
 /// Enmascara la contraseña en la URL de la base de datos para logging seguro

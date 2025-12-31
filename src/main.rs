@@ -59,7 +59,7 @@ async fn main() {
     };
 
     tracing::info!("✓ Servidor listo para recibir peticiones!");
-    tracing::info!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    tracing::info!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
     // Iniciar el servidor
     if let Err(e) = axum::serve(listener, app).await {

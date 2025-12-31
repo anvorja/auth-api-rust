@@ -141,7 +141,7 @@ where
 
     match settings.environment {
         Environment::Development => {
-            tracing::info!("🚀  Entorno: Desarrollo");
+            tracing::info!("🌍  Entorno: Desarrollo");
             tracing::info!("    • CSP: Permisivo para Swagger UI");
             tracing::info!("    • CORS: Permite localhost");
         }

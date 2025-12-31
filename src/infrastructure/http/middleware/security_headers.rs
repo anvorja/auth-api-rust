@@ -14,7 +14,7 @@ pub async fn security_headers_middleware(
     let mut response = next.run(request).await;
     let headers = response.headers_mut();
 
-    // Detectar entorno desde variable de entorno
+    // Detectar el entorno desde variable de entorno
     let is_production = std::env::var("ENVIRONMENT")
         .unwrap_or_else(|_| "development".to_string())
         .to_lowercase()
