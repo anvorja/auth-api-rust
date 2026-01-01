@@ -5,8 +5,9 @@ use axum::{
     Router,
 };
 use std::sync::Arc;
-use utoipa::OpenApi;
+use utoipa::{Modify, OpenApi};
 use utoipa_swagger_ui::SwaggerUi;
+use utoipa::openapi::security::{HttpAuthScheme, HttpBuilder, SecurityScheme};
 
 use crate::application::AuthUseCase;
 use crate::config::{Environment, Settings};
@@ -172,6 +173,24 @@ where
         .layer(middleware::from_fn(security_headers_middleware))
 }
 
+struct SecurityAddon;
+
+impl Modify for SecurityAddon {
+    fn modify(&self, openapi: &mut utoipa::openapi::OpenApi) {
+        let components = openapi.components.as_mut().unwrap();
+        components.add_security_scheme(
+            "bearer_auth",
+            SecurityScheme::Http(
+                HttpBuilder::new()
+                    .scheme(HttpAuthScheme::Bearer)
+                    .bearer_format("JWT")
+                    .description(Some("Ingrese su access token JWT"))
+                    .build(),
+            ),
+        );
+    }
+}
+
 /// Documentación OpenAPI
 #[derive(OpenApi)]
 #[openapi(
@@ -196,6 +215,7 @@ where
             crate::presentation::HealthResponse,
         )
     ),
+    modifiers(&SecurityAddon),
     tags(
         (name = "Authentication", description = "Endpoints de autenticación de usuarios"),
         (name = "Users", description = "Gestión de perfil de usuario"),
@@ -207,7 +227,7 @@ where
         description = "API de autenticación enterprise en Rust con Axum, SQLx y JWT",
         contact(
             name = "API Support",
-            email = "support@example.com"
+            email = "anvorja@github.com"
         ),
         license(
             name = "MIT",

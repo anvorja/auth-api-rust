@@ -29,7 +29,7 @@ use std::sync::Arc;
     ),
     tag = "Users",
     security(
-        ("cookie_auth" = [])
+        ("bearer_auth" = [])
     )
 )]
 pub async fn get_profile_handler<R, P, J, S>(
@@ -63,7 +63,7 @@ where
     ),
     tag = "Users",
     security(
-        ("cookie_auth" = [])
+        ("bearer_auth" = [])
     )
 )]
 pub async fn change_password_handler<R, P, J, S>(
