@@ -1,18 +1,34 @@
 // src/infrastructure/repositories/test/user_repository_sqlx_test.rs
 use crate::infrastructure::repositories::{UserRepository, UserRepositorySqlx};
 use crate::infrastructure::db::create_pool;
-use crate::config::Settings;
+use crate::config::{Settings, DatabaseSettings, JwtSettings, ServerSettings, SecuritySettings, Environment};
 use crate::domain::{User, Username, Email, PasswordHash};
 use sqlx::PgPool;
 
-// Helper para crear settings de prueba
+/// Crea un pool de base de datos para tests sin usar variables de entorno
 async fn create_test_pool() -> PgPool {
-    unsafe {
-        std::env::set_var("DATABASE_URL", "postgresql://postgres:superapostgres@localhost:5432/usuarios_rust_db_test");
-        std::env::set_var("JWT_SECRET", "test-secret-key-minimum-32-characters-long");
-    }
+    let settings = Settings {
+        server: ServerSettings {
+            host: "127.0.0.1".to_string(),
+            port: 8080,
+        },
+        database: DatabaseSettings {
+            url: "postgresql://postgres:superapostgres@localhost:5432/usuarios_rust_db_test".to_string(),
+            max_connections: 5,
+            min_connections: 2,
+            acquire_timeout: 30,
+        },
+        jwt: JwtSettings {
+            secret: "test-secret-key-minimum-32-characters-long".to_string(),
+            access_token_expiry: 900,
+            refresh_token_expiry: 604800,
+        },
+        security: SecuritySettings {
+            allowed_origins: vec!["http://localhost:3000".to_string()],
+        },
+        environment: Environment::Test,
+    };
 
-    let settings = Settings::from_env().expect("Failed to load test settings");
     create_pool(&settings).await.expect("Failed to create test pool")
 }
 
@@ -188,5 +204,33 @@ async fn test_delete_user() {
 
     // Verificar que se eliminó
     let found = repo.find_by_id(user.id()).await.unwrap();
+    assert!(found.is_none());
+}
+#[tokio::test]
+#[ignore]
+async fn test_find_by_email() {
+    let pool = create_test_pool().await;
+    let repo = UserRepositorySqlx::new(pool);
+    let user = create_test_user().await;
+
+    repo.create(&user).await.unwrap();
+
+    let found = repo.find_by_email(user.email()).await.unwrap();
+    assert!(found.is_some());
+    assert_eq!(found.unwrap().email().value(), user.email().value());
+
+    // Cleanup
+    let _ = repo.delete(user.id()).await;
+}
+
+#[tokio::test]
+#[ignore]
+async fn test_find_by_email_not_found() {
+    let pool = create_test_pool().await;
+    let repo = UserRepositorySqlx::new(pool);
+
+    let non_existent_email = Email::new("nonexistent@example.com".to_string()).unwrap();
+    let found = repo.find_by_email(&non_existent_email).await.unwrap();
+
     assert!(found.is_none());
 }

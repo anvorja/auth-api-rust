@@ -1,5 +1,5 @@
 // src/infrastructure/http/test/routes_test.rs
-use crate::config::Settings;
+use crate::config::{Settings, DatabaseSettings, JwtSettings, ServerSettings, SecuritySettings, Environment};
 use crate::infrastructure::{ArgonPasswordHasher, JwtServiceImpl, UserRepositorySqlx};
 use crate::infrastructure::db::create_pool;
 use crate::infrastructure::http::routes::create_router;
@@ -22,12 +22,28 @@ fn test_openapi_generation() {
 #[tokio::test]
 #[ignore] // Requiere configuración completa
 async fn test_router_creation() {
-    unsafe {
-        std::env::set_var("DATABASE_URL", "postgresql://postgres:superapostgres@localhost:5432/usuarios_rust_db_test");
-        std::env::set_var("JWT_SECRET", "test-secret-key-minimum-32-characters-long");
-    }
+    let settings = Settings {
+        server: ServerSettings {
+            host: "127.0.0.1".to_string(),
+            port: 8080,
+        },
+        database: DatabaseSettings {
+            url: "postgresql://postgres:superapostgres@localhost:5432/usuarios_rust_db_test".to_string(),
+            max_connections: 5,
+            min_connections: 2,
+            acquire_timeout: 30,
+        },
+        jwt: JwtSettings {
+            secret: "test-secret-key-minimum-32-characters-long".to_string(),
+            access_token_expiry: 900,
+            refresh_token_expiry: 604800,
+        },
+        security: SecuritySettings {
+            allowed_origins: vec!["http://localhost:3000".to_string()],
+        },
+        environment: Environment::Test,
+    };
 
-    let settings = Settings::from_env().unwrap();
     let pool = create_pool(&settings).await.unwrap();
 
     let user_repository = Arc::new(UserRepositorySqlx::new(pool.clone()));

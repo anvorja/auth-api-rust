@@ -1,13 +1,11 @@
 // src/infrastructure/http/handlers/auth.rs
 use axum::{
     extract::State,
-    http::{header, StatusCode},
+    http::StatusCode,
     response::IntoResponse,
     Json,
 };
-use axum_extra::extract::cookie::{Cookie, SameSite};
 use std::sync::Arc;
-use time::Duration;
 use validator::Validate;
 
 use crate::application::AuthUseCase;
@@ -19,7 +17,7 @@ use crate::presentation::{AuthResponse, LoginRequest, RefreshRequest, RegisterRe
 ///
 /// POST /api/v1/auth/register
 ///
-/// Crea un nuevo usuario y retorna tokens JWT en cookies HttpOnly
+/// Retorna tokens JWT en el body (NO en cookies)
 #[utoipa::path(
     post,
     path = "/api/v1/auth/register",
@@ -51,30 +49,22 @@ where
     // Ejecutar caso de uso
     let (user, access_token, refresh_token) = auth_usecase.register_user(request).await?;
 
-    // Crear cookies HttpOnly
-    let access_cookie = create_access_token_cookie(&access_token, jwt_service.get_access_token_expiry());
-    let refresh_cookie = create_refresh_token_cookie(&refresh_token, jwt_service.get_refresh_token_expiry());
-
-    // Crear respuesta
+    // Crear respuesta (SOLO JSON, sin cookies)
     let response = AuthResponse::new(
-        access_token.clone(),
-        refresh_token.clone(),
+        access_token,
+        refresh_token,
         jwt_service.get_access_token_expiry(),
         &user,
     );
 
-    Ok((
-        StatusCode::CREATED,
-        [(header::SET_COOKIE, access_cookie.to_string()), (header::SET_COOKIE, refresh_cookie.to_string())],
-        Json(response),
-    ))
+    Ok((StatusCode::CREATED, Json(response)))
 }
 
 /// Handler para login de usuario
 ///
 /// POST /api/v1/auth/login
 ///
-/// Autentica al usuario y retorna tokens JWT en cookies HttpOnly
+/// Retorna tokens JWT en el body (NO en cookies)
 #[utoipa::path(
     post,
     path = "/api/v1/auth/login",
@@ -106,23 +96,15 @@ where
     // Ejecutar caso de uso
     let (user, access_token, refresh_token) = auth_usecase.login_user(request).await?;
 
-    // Crear cookies HttpOnly
-    let access_cookie = create_access_token_cookie(&access_token, jwt_service.get_access_token_expiry());
-    let refresh_cookie = create_refresh_token_cookie(&refresh_token, jwt_service.get_refresh_token_expiry());
-
-    // Crear respuesta
+    // Crear respuesta (SOLO JSON, sin cookies)
     let response = AuthResponse::new(
-        access_token.clone(),
-        refresh_token.clone(),
+        access_token,
+        refresh_token,
         jwt_service.get_access_token_expiry(),
         &user,
     );
 
-    Ok((
-        StatusCode::OK,
-        [(header::SET_COOKIE, access_cookie.to_string()), (header::SET_COOKIE, refresh_cookie.to_string())],
-        Json(response),
-    ))
+    Ok((StatusCode::OK, Json(response)))
 }
 
 /// Handler para refresh token
@@ -163,30 +145,23 @@ where
         .refresh_token(&request.refresh_token)
         .await?;
 
-    // Crear cookies HttpOnly
-    let access_cookie = create_access_token_cookie(&access_token, jwt_service.get_access_token_expiry());
-    let refresh_cookie = create_refresh_token_cookie(&refresh_token, jwt_service.get_refresh_token_expiry());
-
-    // Crear respuesta
+    // Crear respuesta (SOLO JSON, sin cookies)
     let response = AuthResponse::new(
-        access_token.clone(),
-        refresh_token.clone(),
+        access_token,
+        refresh_token,
         jwt_service.get_access_token_expiry(),
         &user,
     );
 
-    Ok((
-        StatusCode::OK,
-        [(header::SET_COOKIE, access_cookie.to_string()), (header::SET_COOKIE, refresh_cookie.to_string())],
-        Json(response),
-    ))
+    Ok((StatusCode::OK, Json(response)))
 }
 
 /// Handler para logout
 ///
 /// POST /api/v1/auth/logout
 ///
-/// Invalida las cookies de autenticación
+/// En arquitectura stateless con Bearer tokens, el logout es client-side
+/// (el cliente simplemente elimina los tokens)
 #[utoipa::path(
     post,
     path = "/api/v1/auth/logout",
@@ -196,54 +171,9 @@ where
     tag = "Authentication"
 )]
 pub async fn logout_handler() -> impl IntoResponse {
-    // Crear cookies expiradas para eliminarlas
-    let access_cookie = Cookie::build(("access_token", ""))
-        .path("/")
-        .max_age(Duration::seconds(-1))
-        .same_site(SameSite::Lax)
-        .http_only(true)
-        .build();
-
-    let refresh_cookie = Cookie::build(("refresh_token", ""))
-        .path("/")
-        .max_age(Duration::seconds(-1))
-        .same_site(SameSite::Lax)
-        .http_only(true)
-        .build();
-
     let response = SuccessResponse {
-        message: "Logout exitoso".to_string(),
+        message: "Logout exitoso. Elimina los tokens del lado del cliente.".to_string(),
     };
 
-    (
-        StatusCode::OK,
-        [(header::SET_COOKIE, access_cookie.to_string()), (header::SET_COOKIE, refresh_cookie.to_string())],
-        Json(response),
-    )
-}
-
-// ============================================================================
-// Helper functions para crear cookies
-// ============================================================================
-
-/// Crea una cookie HttpOnly para el access token
-fn create_access_token_cookie(token: &str, max_age_seconds: i64) -> Cookie<'static> {
-    Cookie::build(("access_token", token.to_string()))
-        .path("/")
-        .max_age(Duration::seconds(max_age_seconds))
-        .same_site(SameSite::Lax)
-        .http_only(true)
-        .secure(false) // En producción debería ser true (HTTPS)
-        .build()
-}
-
-/// Crea una cookie HttpOnly para el refresh token
-fn create_refresh_token_cookie(token: &str, max_age_seconds: i64) -> Cookie<'static> {
-    Cookie::build(("refresh_token", token.to_string()))
-        .path("/")
-        .max_age(Duration::seconds(max_age_seconds))
-        .same_site(SameSite::Lax)
-        .http_only(true)
-        .secure(false) // En producción debería ser true (HTTPS)
-        .build()
+    (StatusCode::OK, Json(response))
 }

@@ -1,4 +1,3 @@
-// V1
 // src/infrastructure/repositories/user_repository_sqlx.rs
 use chrono::{DateTime, Utc};
 use sqlx::PgPool;

@@ -1,10 +1,10 @@
 // src/application/auth_usecase.rs
 use std::sync::Arc;
 
-use crate::domain::{Email, PasswordHash, User, UserId, Username};
+use crate::domain::{User, UserId};
 use crate::error::{AppError, AppResult};
 use crate::infrastructure::{JwtService, PasswordHasher, UserRepository};
-use crate::presentation::{LoginRequest, RefreshTokenClaims, RegisterRequest};
+use crate::presentation::{LoginRequest, RegisterRequest};
 
 /// Casos de uso de autenticación
 ///

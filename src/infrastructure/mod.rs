@@ -1,4 +1,3 @@
-// V1
 // src/infrastructure/mod.rs
 pub mod db;
 pub mod http;

@@ -66,22 +66,18 @@ echo "📋 Checking required variables..."
 ERRORS=0
 
 check_env_var "DATABASE_URL" || ERRORS=$((ERRORS + 1))
-check_env_var "JWT_ACCESS_SECRET" || ERRORS=$((ERRORS + 1))
-check_env_var "JWT_REFRESH_SECRET" || ERRORS=$((ERRORS + 1))
+check_env_var "JWT_SECRET" || ERRORS=$((ERRORS + 1))
 check_env_var "SERVER_PORT" || ERRORS=$((ERRORS + 1))
 
 echo ""
 echo "🔐 Checking security settings..."
 
-check_min_length "JWT_ACCESS_SECRET" 32 || ERRORS=$((ERRORS + 1))
-check_min_length "JWT_REFRESH_SECRET" 32 || ERRORS=$((ERRORS + 1))
+check_min_length "JWT_SECRET" 32 || ERRORS=$((ERRORS + 1))
 
 echo ""
 echo "⚠️  Checking for default values..."
 
-check_not_default "JWT_ACCESS_SECRET"
-check_not_default "JWT_REFRESH_SECRET"
-check_not_default "DATABASE_PASSWORD"
+check_not_default "JWT_SECRET"
 
 echo ""
 

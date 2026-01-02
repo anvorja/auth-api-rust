@@ -1,4 +1,3 @@
-// V1
 // src/infrastructure/db.rs
 use sqlx::postgres::{PgPool, PgPoolOptions};
 use std::time::Duration;
@@ -11,7 +10,7 @@ pub type DbPool = PgPool;
 
 /// Crea un pool de conexiones a PostgreSQL
 ///
-/// # Configuración
+/// Configuración
 /// - Usa las settings de la aplicación
 /// - Configura timeouts y límites de conexiones
 /// - Verifica la conexión antes de retornar
@@ -36,10 +35,35 @@ pub async fn create_pool(settings: &Settings) -> Result<DbPool, AppError> {
         .await
         .map_err(|e| {
             tracing::error!("Error al conectar con PostgreSQL: {}", e);
-            AppError::DatabaseConnectionError
+            // Clasificar el error apropiadamente
+            match e {
+                sqlx::Error::PoolTimedOut => {
+                    tracing::error!("Timeout del pool - base de datos no responde");
+                    AppError::unavailable()  // ✓ 503 Service Unavailable
+                }
+                sqlx::Error::PoolClosed => {
+                    tracing::error!("Pool cerrado - posible reinicio de base de datos");
+                    AppError::unavailable()  // ✓ 503 Service Unavailable
+                }
+                sqlx::Error::Configuration(_) => {
+                    // Error de configuración de la base de datos
+                    tracing::error!("Configuración de DB inválida");
+                    AppError::config(format!("URL de base de datos inválida: {}", e))  // ✓ ConfigError
+                }
+                sqlx::Error::Database(db_err) => {
+                    if db_err.is_unique_violation() {
+                        // Esto no debería pasar al conectar, pero por si acaso
+                        AppError::config("Configuración de DB duplicada o conflictiva".to_string())
+                    } else {
+                        AppError::DatabaseConnectionError
+                    }
+                }
+                // Otros errores de conexión (network, auth, etc.)
+                _ => AppError::DatabaseConnectionError,  // 500 Internal Server Error
+            }
         })?;
 
-    tracing::info!("✅ Pool de conexiones creado exitosamente");
+    tracing::info!("✓ Pool de conexiones creado exitosamente");
 
     // Verificar conexión ejecutando una query simple
     verify_connection(&pool).await?;
@@ -59,7 +83,7 @@ pub async fn verify_connection(pool: &DbPool) -> Result<(), AppError> {
             AppError::DatabaseConnectionError
         })?;
 
-    tracing::debug!("✅ Conexión verificada");
+    tracing::debug!("✓ Conexión verificada");
     Ok(())
 }
 
@@ -82,7 +106,7 @@ pub async fn health_check(pool: &DbPool) -> bool {
 pub async fn close_pool(pool: DbPool) {
     tracing::info!("Cerrando pool de conexiones...");
     pool.close().await;
-    tracing::info!("✅ Pool cerrado");
+    tracing::info!("✓ Pool cerrado");
 }
 
 /// Obtiene estadísticas del pool de conexiones

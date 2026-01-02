@@ -1,8 +1,8 @@
-# V1
 [package]
 name = "auth-api-rust"
 version = "0.1.0"
 edition = "2024"
+default-run = "auth-api-rust"
 
 [dependencies]
 # Web Framework
@@ -52,3 +52,14 @@ anyhow = "1.0"
 # Async
 async-trait = "0.1"
 futures = "0.3"
+temp-env = "0.3.6"
+serial_test = "3.2.0"
+
+# Binarios explícitos
+[[bin]]
+name = "auth-api-rust"
+path = "src/main.rs"
+
+[[bin]]
+name = "seed_dev"
+path = "src/bin/seed_dev.rs"

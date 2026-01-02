@@ -1,4 +1,3 @@
-// V1
 // src/infrastructure/http/handlers/user.rs
 use axum::{
     extract::State,
@@ -20,7 +19,7 @@ use std::sync::Arc;
 ///
 /// GET /api/v1/users/profile
 ///
-/// Requiere autenticación (access token en cookies)
+/// Requiere autenticación (access token desde Authorization header)
 #[utoipa::path(
     get,
     path = "/api/v1/users/profile",
@@ -30,7 +29,7 @@ use std::sync::Arc;
     ),
     tag = "Users",
     security(
-        ("cookie_auth" = [])
+        ("bearer_auth" = [])
     )
 )]
 pub async fn get_profile_handler<R, P, J, S>(
@@ -64,7 +63,7 @@ where
     ),
     tag = "Users",
     security(
-        ("cookie_auth" = [])
+        ("bearer_auth" = [])
     )
 )]
 pub async fn change_password_handler<R, P, J, S>(

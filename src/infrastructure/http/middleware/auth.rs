@@ -1,12 +1,10 @@
-// V1
 // src/infrastructure/http/middleware/auth.rs
 use axum::{
     extract::{Request, State},
-    http::StatusCode,
+    http::{StatusCode, header},
     middleware::Next,
     response::Response,
 };
-use axum_extra::extract::cookie::CookieJar;
 use std::sync::Arc;
 
 use crate::application::AuthUseCase;
@@ -15,26 +13,14 @@ use crate::error::AppError;
 use crate::infrastructure::{JwtService, PasswordHasher, UserRepository};
 
 /// Extension que contiene el usuario autenticado
-///
-/// Los handlers pueden extraer esto para obtener el usuario actual:
-/// ```
-/// async fn protected_handler(
-///     Extension(user): Extension<User>,
-/// ) -> impl IntoResponse {
-///     // user está autenticado
-/// }
-/// ```
 #[derive(Clone)]
 pub struct AuthenticatedUser(pub User);
 
-/// Middleware de autenticación
+/// Middleware de autenticación - Solo Bearer Token
 ///
-/// Valida el access token de las cookies y añade el usuario a las extensions
-///
-/// Si el token es inválido o no existe, retorna 401 Unauthorized
+/// Extrae el token del header: Authorization: Bearer <token>
 pub async fn auth_middleware<R, P, J>(
     State(auth_usecase): State<Arc<AuthUseCase<R, P, J>>>,
-    cookie_jar: CookieJar,
     mut request: Request,
     next: Next,
 ) -> Result<Response, AppError>
@@ -43,11 +29,31 @@ where
     P: PasswordHasher + 'static,
     J: JwtService + 'static,
 {
-    // Extraer access token de las cookies
-    let access_token = cookie_jar
-        .get("access_token")
-        .ok_or(AppError::Unauthorized)?
-        .value();
+    // Extraer token del header Authorization
+    let auth_header = request
+        .headers()
+        .get(header::AUTHORIZATION)
+        .ok_or_else(|| {
+            tracing::warn!("❌ Header Authorization no encontrado");
+            AppError::Unauthorized
+        })?;
+
+    let auth_str = auth_header
+        .to_str()
+        .map_err(|_| {
+            tracing::warn!("❌ Header Authorization con formato inválido");
+            AppError::Unauthorized
+        })?;
+
+    // Verificar formato "Bearer <token>"
+    let access_token = auth_str
+        .strip_prefix("Bearer ")
+        .ok_or_else(|| {
+            tracing::warn!("❌ Header Authorization sin prefijo 'Bearer '");
+            AppError::Unauthorized
+        })?;
+
+    tracing::debug!("🔑 Token Bearer extraído correctamente");
 
     // Validar el token y obtener el usuario
     let user = auth_usecase
@@ -62,18 +68,6 @@ where
 }
 
 /// Extractor personalizado para obtener el usuario autenticado
-///
-/// Uso en handlers:
-/// ```
-/// use axum::extract::Extension;
-/// use crate::infrastructure::http::middleware::AuthenticatedUser;
-///
-/// async fn my_handler(
-///     Extension(AuthenticatedUser(user)): Extension<AuthenticatedUser>,
-/// ) -> impl IntoResponse {
-///     format!("Hola, {}!", user.username().value())
-/// }
-/// ```
 impl<S> axum::extract::FromRequestParts<S> for AuthenticatedUser
 where
     S: Send + Sync,
@@ -90,7 +84,7 @@ where
             .cloned()
             .ok_or((
                 StatusCode::UNAUTHORIZED,
-                "Usuario no autenticado. Debes pasar por el middleware de autenticación.",
+                "Usuario no autenticado. Debe incluir: Authorization: Bearer <token>",
             ))
     }
 }
