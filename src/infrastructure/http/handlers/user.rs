@@ -19,7 +19,7 @@ use std::sync::Arc;
 ///
 /// GET /api/v1/users/profile
 ///
-/// Requiere autenticación (access token en cookies)
+/// Requiere autenticación (access token desde Authorization header)
 #[utoipa::path(
     get,
     path = "/api/v1/users/profile",
