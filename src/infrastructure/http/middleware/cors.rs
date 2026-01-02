@@ -12,30 +12,27 @@ pub fn create_cors_layer(settings: &Settings) -> CorsLayer {
     }
 }
 
-/// CORS para desarrollo (Swagger UI friendly)
+/// CORS para desarrollo (permisivo, localhost sin HTTPS)
 fn create_development_cors(settings: &Settings) -> CorsLayer {
-    tracing::info!("🔓 CORS: Desarrollo - Permisivo para Swagger UI");
+    tracing::info!("🔓 CORS: Desarrollo - Permisivo (HTTP localhost)");
 
-    let mut allowed_origins: Vec<HeaderValue> = settings
+    // La configuración viene de settings (de .env)
+    let allowed_origins: Vec<HeaderValue> = settings
         .security
         .allowed_origins
         .iter()
-        .filter_map(|origin| origin.parse().ok())
+        .filter_map(|origin| {
+            origin.parse::<HeaderValue>().ok()
+        })
         .collect();
 
-    // Agregar localhost automáticamente en desarrollo
-    let dev_origins = [
-        "http://localhost:9090",
-        "http://127.0.0.1:9090",
-    ];
-
-    for origin in dev_origins {
-        if let Ok(header) = origin.parse::<HeaderValue>() {
-            if !allowed_origins.contains(&header) {
-                allowed_origins.push(header);
-            }
-        }
+    if allowed_origins.is_empty() {
+        tracing::warn!("⚠️  No hay orígenes configurados en ALLOWED_ORIGINS");
     }
+
+    tracing::info!("   Orígenes permitidos: {:?}",
+        settings.security.allowed_origins.iter().collect::<Vec<_>>()
+    );
 
     CorsLayer::new()
         .allow_origin(allowed_origins)
@@ -55,15 +52,14 @@ fn create_development_cors(settings: &Settings) -> CorsLayer {
         ])
         .expose_headers([
             axum::http::header::CONTENT_TYPE,
-            axum::http::header::SET_COOKIE,
         ])
-        .allow_credentials(true)
+        .allow_credentials(false)
         .max_age(std::time::Duration::from_secs(3600))
 }
 
-/// CORS para testing (restrictivo pero funcional)
+/// CORS para testing
 fn create_test_cors(settings: &Settings) -> CorsLayer {
-    tracing::info!("  CORS: Testing - Configuración balanceada");
+    tracing::info!("🧪 CORS: Testing - Configuración balanceada");
 
     let allowed_origins: Vec<HeaderValue> = settings
         .security
@@ -89,20 +85,41 @@ fn create_test_cors(settings: &Settings) -> CorsLayer {
         .expose_headers([
             axum::http::header::CONTENT_TYPE,
         ])
-        .allow_credentials(true)
+        .allow_credentials(false)
         .max_age(std::time::Duration::from_secs(1800))
 }
 
-/// CORS para producción (máxima seguridad)
+/// CORS para producción (restrictivo, SOLO HTTPS)
 fn create_production_cors(settings: &Settings) -> CorsLayer {
-    tracing::info!("🔐 CORS: Producción - Máxima seguridad");
+    tracing::info!("🔒 CORS: Producción - Máxima seguridad (HTTPS required)");
 
+    // ✅ Validar que SOLO haya orígenes HTTPS en producción
     let allowed_origins: Vec<HeaderValue> = settings
         .security
         .allowed_origins
         .iter()
+        .filter(|origin| {
+            if !origin.starts_with("https://") {
+                tracing::error!("❌ Origen NO HTTPS rechazado en producción: {}", origin);
+                false
+            } else {
+                true
+            }
+        })
         .filter_map(|origin| origin.parse().ok())
         .collect();
+
+    if allowed_origins.is_empty() {
+        tracing::error!("❌ PRODUCCIÓN: No hay orígenes HTTPS configurados!");
+        panic!("CORS en producción requiere al menos un origen HTTPS en ALLOWED_ORIGINS");
+    }
+
+    tracing::info!("   Orígenes HTTPS permitidos: {:?}",
+        settings.security.allowed_origins
+            .iter()
+            .filter(|o| o.starts_with("https://"))
+            .collect::<Vec<_>>()
+    );
 
     CorsLayer::new()
         .allow_origin(allowed_origins)
@@ -121,6 +138,6 @@ fn create_production_cors(settings: &Settings) -> CorsLayer {
         .expose_headers([
             axum::http::header::CONTENT_TYPE,
         ])
-        .allow_credentials(true)
+        .allow_credentials(false)
         .max_age(std::time::Duration::from_secs(3600))
 }
