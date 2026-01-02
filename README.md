@@ -1,35 +1,39 @@
 # 🦀 Auth API Rust
 
-API RESTful de autenticación enterprise-grade construida con Rust, siguiendo principios SOLID y Clean Architecture.
+API RESTful de autenticación enterprise-grade construida con Rust, siguiendo principios SOLID, Clean Architecture y arquitectura de microservicios stateless.
 
 ## Características
 
 - **Arquitectura Limpia**: Separación clara entre dominio, aplicación e infraestructura
-- **Seguridad Enterprise**: JWT con access/refresh tokens, Argon2, CORS, CSP/HSTS
-- **Base de Datos**: PostgreSQL con SQLx y migraciones
-- **Documentación**: Swagger UI integrado con OpenAPI 3.0
+- **Microservicio Stateless**: Bearer Token con Refresh Strategy para escalabilidad horizontal
+- **Seguridad Enterprise**: JWT (access/refresh tokens), Argon2id, CORS por entorno, CSP/HSTS
+- **Base de Datos**: PostgreSQL con SQLx y migraciones versionadas
+- **Documentación**: Swagger UI integrado con OpenAPI 3.0 y autenticación Bearer
 - **Validaciones**: Input validation exhaustiva con `validator`
-- **Tipo-seguro**: Aprovecha el sistema de tipos de Rust
-- **Escalable**: Preparado para microservicios
+- **Tipo-seguro**: Aprovecha el sistema de tipos de Rust para prevenir errores
+- **Testing: Suite**: completa de tests unitarios e integración con base de datos
+- **12-Factor App**: Configuración completa por variables de entorno
 
 ## Stack Tecnológico
 
-| Categoría | Tecnología |
-|-----------|------------|
-| Framework Web | Axum + Tower |
-| Base de Datos | PostgreSQL + SQLx |
-| Serialización | Serde |
-| Validación | Validator |
-| Seguridad | Argon2 + JWT |
-| Documentación | utoipa + Swagger UI |
-| Config | dotenvy + envy |
-| Logging | tracing |
+| Categoría | Tecnología | Versión |
+|-----------|------------|---------|
+| **Framework Web** | Axum + Tower | 0.8.0 |
+| **Base de Datos** | PostgreSQL + SQLx | 0.8.6 |
+| **Serialización** | Serde | 1.0 |
+| **Validación** | Validator | 0.20.0 |
+| **Seguridad** | Argon2id + JWT | 0.5 / 9 |
+| **Documentación** | utoipa + Swagger UI | 5.4.0 |
+| **Configuración** | dotenvy + envy | 0.15 |
+| **Logging** | tracing | 0.1 |
 
 ## Prerrequisitos
 
-- Rust 1.75+ (edition 2021)
-- PostgreSQL 14+
-- Cargo
+- **Rust** 1.75+ (edition 2024)
+- **PostgreSQL** 14+
+- **Cargo** (incluido con Rust)
+- **SQLx CLI** (para migraciones)
+
 
 ## Instalación
 
@@ -46,39 +50,75 @@ cd auth-api-rust
 # Crear base de datos
 createdb usuarios_rust_db
 
+# Crear base de datos de testing
+createdb usuarios_rust_db_test
+
 # O usando psql
 psql -U postgres
 CREATE DATABASE usuarios_rust_db;
+CREATE DATABASE usuarios_rust_db_test;
 \q
 ```
 
 ### 3. Configurar variables de entorno
 
 ```bash
-# Copiar template de configuración
+# Copiar template de configuración y editarlo con sus respectivos valores
 cp .env.example .env
-
-# Editar .env con tus credenciales
-nano .env
 ```
 
+**Configuración mínima requerida:**
 
 ```bash
-# Generar secretos seguros
-openssl rand -base64 64
+# Server
+SERVER_HOST=127.0.0.1
+SERVER_PORT=9090
+
+# Database
+DATABASE_URL=postgresql://postgres:password@host:port/usuarios_rust_db
+
+JWT_SECRET=
+JWT_ACCESS_TOKEN_EXPIRY=
+JWT_REFRESH_TOKEN_EXPIRY=
+
+# CORS - Desarrollo
+ALLOWED_ORIGINS=http://localhost:9090,http://localhost:3000
+
+# Environment
+ENVIRONMENT=
+RUST_LOG=
 ```
 
-### 4. Ejecutar migraciones
+### 4. Instalar SQLx CL y ejecutar migraciones
 
 ```bash
+# Instalar SQLx CLI (si no está instalado)
 cargo install sqlx-cli --no-default-features --features postgres
+
+# Ejecutar migraciones en base de datos principal
 sqlx migrate run
-cargo run --bin seed_dev
 ```
 
 ### Ejecutar migraciones para testing
 ```
 bash scripts/setup_test_db.sh
+```
+
+```
+# 1. Setup inicial (Una sola vez por máquina de desarrollo)
+bash scripts/setup_test_db.sh
+
+# 2. Antes de correr tests (Antes de cada test suite run)
+bash scripts/clean_test_db.sh
+
+# 3. Correr tests (cada test crea sus datos)
+cargo test -- --ignored
+
+# Resultado: DB limpia al final
+```
+ó manualmente (para debugging):
+```
+DATABASE_URL="postgresql://postgres:password@host:port/usuarios_rust_db_test" sqlx migrate run
 ```
 
 ### 5. Ejecutar la aplicación
@@ -119,13 +159,13 @@ auth-api-rust/
 │   └── 0001_create_users.sql
 ├── src/
 │   ├── main.rs           
-│   ├── app.rs            # Construcción del router
+│   ├── app.rs            
 │   ├── state.rs         
 │   ├── error.rs         
-│   ├── config/           # Configuración centralizada
+│   ├── config/           
 │   │   ├── mod.rs
 │   │   └── settings.rs
-│   ├── domain/           # Entidades y lógica de negocio
+│   ├── domain/           
 │   │   ├── mod.rs
 │   │   └── user.rs
 │   ├── application/     
@@ -168,7 +208,7 @@ auth-api-rust/
 | POST | `/api/v1/auth/refresh` | Renovar access token |
 | POST | `/api/v1/auth/logout` | Cerrar sesión |
 
-### Salud y Documentación
+### Health y Documentación
 
 | Método | Endpoint | Descripción |
 |--------|----------|-------------|
@@ -180,7 +220,6 @@ auth-api-rust/
 ### Implementaciones
 
 - **JWT**: Access tokens (15 min) + Refresh tokens (7 días)
-- **Cookies HttpOnly**: Protección contra XSS
 - **Argon2**: Hashing de passwords (resistente a GPU/ASIC)
 - **CORS**: Configuración restrictiva
 - **CSP/HSTS**: Headers de seguridad

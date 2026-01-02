@@ -10,11 +10,11 @@ echo "🧹 Limpiando base de datos de tests..."
 
 # Intentar diferentes métodos de autenticación
 if psql -h localhost -U postgres -d $DB_NAME -c "TRUNCATE TABLE users RESTART IDENTITY CASCADE;" 2>/dev/null; then
-    echo "✅ Base de datos limpiada (método: host localhost)"
+    echo "✓ Base de datos limpiada (método: host localhost)"
 elif sudo -u postgres psql -d $DB_NAME -c "TRUNCATE TABLE users RESTART IDENTITY CASCADE;" 2>/dev/null; then
-    echo "✅ Base de datos limpiada (método: sudo postgres)"
+    echo "✓ Base de datos limpiada (método: sudo postgres)"
 elif psql -d $DB_NAME -c "TRUNCATE TABLE users RESTART IDENTITY CASCADE;" 2>/dev/null; then
-    echo "✅ Base de datos limpiada (método: usuario actual)"
+    echo "✓ Base de datos limpiada (método: usuario actual)"
 else
     echo "❌ Error: No se pudo limpiar la base de datos"
     echo ""
@@ -26,5 +26,5 @@ else
 fi
 
 echo ""
-echo "🧪 Ahora puedes ejecutar:"
+echo "  Ahora puedes ejecutar:"
 echo "   cargo test -- --ignored"

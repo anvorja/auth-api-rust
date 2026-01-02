@@ -66,7 +66,7 @@ pub fn log_app_info(settings: &Settings) {
     tracing::info!("📋  Auth API - Rust Edition");
     tracing::info!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
     tracing::info!("🌐  Servidor: {}", settings.socket_addr());
-    tracing::info!("🗄️  Base de datos: {}", mask_db_url(&settings.database.url));
+    tracing::info!("🗄   Base de datos: {}", mask_db_url(&settings.database.url));
     tracing::info!("🔐  JWT configurado: {} segundos", settings.jwt.access_token_expiry);
     tracing::info!("🌍  Entorno: {:?}", settings.environment);
     tracing::info!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");

@@ -1,5 +1,5 @@
 // src/bin/seed_dev.rs
-// Seed simple para poblar la base de datos con usuarios de prueba
+// Seed simple para poblar la base de datos en desarrollo con usuarios de prueba
 
 // Uso: cargo run --bin seed_dev
 
@@ -20,25 +20,25 @@ use dotenvy::dotenv;
 async fn main() -> anyhow::Result<()> {
     dotenv().ok();
 
-    println!("🌱 Iniciando seed de usuarios de prueba...");
+    println!("\n⚙ Iniciando seed de usuarios de prueba...");
 
     let database_url = env::var("DATABASE_URL")
         .expect("DATABASE_URL debe estar configurada en .env");
 
-    println!("📦 Conectando a la base de datos...");
+    println!("🗄 Conectando a la base de datos...");
     let pool = PgPoolOptions::new()
         .max_connections(5)
         .connect(&database_url)
         .await?;
 
-    println!("✅ Conectado exitosamente");
+    println!("✓ Conectado exitosamente");
     println!();
 
-    // Opcional: Limpiar usuarios existentes (comentar si no quieres limpiar)
-    // println!("🧹 Limpiando tabla de usuarios...");
-    // sqlx::query!("DELETE FROM users").execute(&pool).await?;
+    // Opcional: Limpiar usuarios existentes antes de escritura
+    println!("🧹 Limpiando tabla de usuarios...");
+    sqlx::query!("DELETE FROM users").execute(&pool).await?;
 
-    println!("👥 Creando usuarios de prueba...");
+    println!("📦 Creando usuarios de prueba...");
     println!();
 
     // Definir usuarios de prueba
@@ -98,21 +98,22 @@ async fn main() -> anyhow::Result<()> {
             .execute(&pool)
             .await?;
 
-        println!("✅ Usuario creado: {} ({})", username, email);
+        println!("✓ Usuario creado: {} ({})", username, email);
         created += 1;
     }
 
     println!();
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
     println!("📊 Resumen:");
-    println!("   ✅ Usuarios creados: {}", created);
-    println!("   ⏭️  Usuarios omitidos: {}", skipped);
+    println!("   ✓ Usuarios creados: {}", created);
+    println!("   - Usuarios omitidos: {}", skipped);
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
     if created > 0 {
         println!();
-        println!("🎉 Seed completado exitosamente!");
+        println!("✓ Seed completado exitosamente!");
         println!();
+        println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
         println!("📋 Usuarios de prueba:");
         println!();
         println!("  Username: admin       Password: Admin123!");
@@ -120,9 +121,10 @@ async fn main() -> anyhow::Result<()> {
         println!("  Username: janedoe     Password: JaneDoe123!");
         println!("  Username: testuser    Password: TestUser123!");
         println!("  Username: developer   Password: Developer123!");
+        println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
         println!();
-        println!("🚀 Inicia la API con: cargo run");
-        println!("📖 Documenta: http://localhost:9090/api/v1/swagger-ui/");
+        println!("-> Inicia la API con: cargo run");
+        println!("📚  Documentación: http://localhost:9090/api/v1/swagger-ui/");
     }
 
     Ok(())

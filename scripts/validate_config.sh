@@ -1,5 +1,4 @@
 #!/bin/bash
-# V1
 # scripts/validate_config.sh
 # Script para validar que la configuración esté correcta antes de ejecutar la app
 
