@@ -75,6 +75,7 @@ coverage-all: test-db-setup ## Coverage completo (incluye tests con DB)
 	@rm -rf coverage
 	@cargo tarpaulin --out Html --output-dir coverage \
 		--exclude-files 'src/bin/*' \
+		--exclude-files 'src/main.rs' \
 		--force-clean \
 		--ignored \
 		-- --test-threads=1
