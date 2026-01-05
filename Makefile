@@ -3,7 +3,7 @@
 
 .PHONY: help setup check build run test clean migrate seed validate \
         test-db test-all test-db-clean test-db-setup test-watch test-one \
-        test-list test-list-module test-list-pattern test-help
+        test-list test-list-module test-list-pattern test-help coverage-all
 
 # Colores
 GREEN  := \033[0;32m
@@ -70,10 +70,24 @@ test-verbose: ## Tests con output detallado
 	@echo "$(GREEN)Running tests (verbose)...$(NC)"
 	@cargo test -- --nocapture --test-threads=1
 
-coverage: ## Generar reporte de coverage (requiere cargo-tarpaulin)
-	@echo "$(GREEN)Generating coverage report...$(NC)"
-	@cargo tarpaulin --out Html --output-dir coverage --exclude-files 'src/bin/*'
+coverage-all: test-db-setup ## Coverage completo (incluye tests con DB)
+	@echo "$(GREEN)Generating full coverage report (including DB tests)...$(NC)"
+	@rm -rf coverage
+	@cargo tarpaulin --out Html --output-dir coverage \
+		--exclude-files 'src/bin/*' \
+		--exclude-files 'src/main.rs' \
+		--force-clean \
+		--ignored \
+		-- --test-threads=1
 
+coverage-fast: ## Coverage rápido (sin DB)
+	@echo "$(GREEN)Generating fast coverage report...$(NC)"
+	@rm -rf coverage
+	@cargo tarpaulin --out Html --output-dir coverage \
+		--exclude-files 'src/bin/*' \
+		--force-clean
+
+coverage: coverage-fast ## Alias para coverage-fast (compatibilidad)
 # ============================================================================
 # DATABASE OPERATIONS
 # ============================================================================
@@ -240,8 +254,8 @@ test-help: ## Ayuda de comandos de testing
 	@echo "  $(BLUE)make test-watch$(NC)"
 	@echo "    → Tests en modo watch (auto-reload)"
 	@echo ""
-	@echo "  $(BLUE)make coverage$(NC)"
-	@echo "    → Generar reporte de coverage HTML"
+	@echo "  $(BLUE)make coverage-all$(NC)"
+	@echo "    → Generar reporte de coverage completo en HTML"
 	@echo ""
 	@echo "$(YELLOW)Workflow Recomendado:$(NC)"
 	@echo ""

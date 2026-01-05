@@ -303,7 +303,7 @@ make test-db-clean
 
 ```bash
 # Generar reporte HTML
-cargo tarpaulin --out Html --output-dir coverage
+make coverage-all
 ```
 
 ### Otros comandos
