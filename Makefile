@@ -3,7 +3,7 @@
 
 .PHONY: help setup check build run test clean migrate seed validate \
         test-db test-all test-db-clean test-db-setup test-watch test-one \
-        test-list test-list-module test-list-pattern test-help
+        test-list test-list-module test-list-pattern test-help coverage-all
 
 # Colores
 GREEN  := \033[0;32m
@@ -253,8 +253,8 @@ test-help: ## Ayuda de comandos de testing
 	@echo "  $(BLUE)make test-watch$(NC)"
 	@echo "    → Tests en modo watch (auto-reload)"
 	@echo ""
-	@echo "  $(BLUE)make coverage$(NC)"
-	@echo "    → Generar reporte de coverage HTML"
+	@echo "  $(BLUE)make coverage-all$(NC)"
+	@echo "    → Generar reporte de coverage completo en HTML"
 	@echo ""
 	@echo "$(YELLOW)Workflow Recomendado:$(NC)"
 	@echo ""
