@@ -1,8 +1,8 @@
 -- V1
 -- migrations/20260201_create_users.sql
 
--- Migración: Crear tabla users
--- Descripción: Tabla principal de usuarios con autenticación
+-- Migración: Crear tabla users con roles
+-- Descripción: Tabla principal de usuarios con autenticación y sistema de roles
 
 -- Habilitar extensión UUID (si no está habilitada)
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -15,6 +15,7 @@ CREATE TABLE users (
                        first_name VARCHAR(100) NOT NULL,
                        last_name VARCHAR(100) NOT NULL,
                        password_hash TEXT NOT NULL,
+                       role VARCHAR(20) NOT NULL DEFAULT 'user',
                        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
                        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
@@ -26,13 +27,15 @@ CREATE TABLE users (
                        CONSTRAINT users_first_name_length CHECK (LENGTH(first_name) >= 1 AND LENGTH(first_name) <= 100),
                        CONSTRAINT users_last_name_length CHECK (LENGTH(last_name) >= 1 AND LENGTH(last_name) <= 100),
                        CONSTRAINT users_username_format CHECK (username ~ '^[a-z][a-z0-9_]{2,29}$'),
-    CONSTRAINT users_password_hash_not_empty CHECK (LENGTH(password_hash) > 0)
+                       CONSTRAINT users_password_hash_not_empty CHECK (LENGTH(password_hash) > 0),
+                       CONSTRAINT users_role_check CHECK (role IN ('user', 'admin'))
 );
 
 -- Índices para performance
 CREATE INDEX idx_users_username ON users(username);
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_created_at ON users(created_at DESC);
+CREATE INDEX idx_users_role ON users(role);
 
 -- Función para actualizar updated_at automáticamente
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -57,5 +60,6 @@ COMMENT ON COLUMN users.email IS 'Email único del usuario';
 COMMENT ON COLUMN users.first_name IS 'Nombre del usuario';
 COMMENT ON COLUMN users.last_name IS 'Apellido del usuario';
 COMMENT ON COLUMN users.password_hash IS 'Password hasheado con Argon2id';
+COMMENT ON COLUMN users.role IS 'Rol del usuario (user o admin)';
 COMMENT ON COLUMN users.created_at IS 'Fecha de creación del registro';
 COMMENT ON COLUMN users.updated_at IS 'Fecha de última actualización (se actualiza automáticamente)';

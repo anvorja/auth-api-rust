@@ -137,7 +137,7 @@ make migrate
 
 ### Ejecutar migraciones para testing
 ```
-bash scripts/setup_test_db.sh
+make test-db-setup
 ```
 
 ó manualmente (para debugging):

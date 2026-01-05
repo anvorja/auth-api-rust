@@ -1,5 +1,5 @@
 // src/domain/test/user_test.rs
-use crate::domain::{User, Username, Email, UserId, PasswordHash};
+use crate::domain::{User, Username, Email, UserId, PasswordHash, UserRole};
 
 #[test]
 fn test_user_creation() {
@@ -126,6 +126,7 @@ fn test_user_from_repository() {
         "John".to_string(),
         "Doe".to_string(),
         PasswordHash::from_hash("$argon2id$...".to_string()),
+        UserRole::User,
         created_at,
         updated_at,
     );
@@ -133,6 +134,7 @@ fn test_user_from_repository() {
     assert_eq!(user.id(), user_id);
     assert_eq!(user.username().value(), "johndoe");
     assert_eq!(user.email().value(), "john@example.com");
+    assert_eq!(user.role(), UserRole::User);
     assert_eq!(user.created_at(), created_at);
     assert_eq!(user.updated_at(), updated_at);
 }

@@ -68,7 +68,7 @@ async fn main() -> anyhow::Result<()> {
     let users = vec![
         ("admin", "Admin", "User", "admin@example.com", "Admin123!", "admin"),
         ("johndoe", "John", "Doe", "john.doe@example.com", "JohnDoe123!", "user"),
-        ("janedoe", "Jane", "Doe", "jane.doe@example.com", "JaneDoe123!", "user"),
+        ("janethdoe", "Janeth", "Doe", "janeth.doe@example.com", "JanethDoe123!", "user"),
         ("testuser", "Test", "User", "test@example.com", "TestUser123!", "user"),
         ("developer", "Developer", "Account", "dev@example.com", "Developer123!", "user"),
     ];
