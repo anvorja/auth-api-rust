@@ -142,7 +142,7 @@ async fn main() -> anyhow::Result<()> {
         println!();
         println!("  Username: admin       Password: Admin123!");
         println!("  Username: johndoe     Password: JohnDoe123!");
-        println!("  Username: janedoe     Password: JaneDoe123!");
+        println!("  Username: janethdoe     Password: JaneDoe123!");
         println!("  Username: testuser    Password: TestUser123!");
         println!("  Username: developer   Password: Developer123!");
         println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
