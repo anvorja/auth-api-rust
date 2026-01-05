@@ -89,7 +89,7 @@ migrate-undo: ## Revertir última migración
 migrate-status: ## Ver estado de migraciones
 	@sqlx migrate info
 
-seed: ## Poblar base de datos con datos de prueba
+seed: ## Poblar DB con datos de prueba en desarrollo
 	@echo "$(GREEN)Seeding database...$(NC)"
 	@cargo run --bin seed_dev
 

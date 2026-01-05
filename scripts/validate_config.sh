@@ -1,10 +1,10 @@
 #!/bin/bash
-# V1
 # scripts/validate_config.sh
 # Script para validar que la configuración esté correcta antes de ejecutar la app
 
 set -e
 
+echo ""
 echo "🔍 Validating configuration..."
 
 # Colores
@@ -70,7 +70,7 @@ check_env_var "JWT_SECRET" || ERRORS=$((ERRORS + 1))
 check_env_var "SERVER_PORT" || ERRORS=$((ERRORS + 1))
 
 echo ""
-echo "🔐 Checking security settings..."
+echo "🔐  Checking security settings..."
 
 check_min_length "JWT_SECRET" 32 || ERRORS=$((ERRORS + 1))
 

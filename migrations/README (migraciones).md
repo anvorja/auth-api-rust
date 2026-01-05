@@ -4,7 +4,7 @@ Este directorio contiene las migraciones de SQLx para la base de datos PostgreSQ
 
 ## Requisitos
 
-- PostgreSQL 12 o superior
+- PostgreSQL 14 o superior
 - SQLx CLI instalado: `cargo install sqlx-cli --no-default-features --features postgres`
 
 ## Configuración Inicial
@@ -29,6 +29,10 @@ DATABASE_URL=postgresql://postgres:superapostgres@localhost:5432/usuarios_rust_d
 ### Aplicar todas las migraciones pendientes:
 ```bash
 sqlx migrate run
+```
+```bash
+# Ejecutar migraciones en base de datos de testing
+DATABASE_URL="postgresql://postgres:password@host:port/usuarios_rust_db_test" sqlx migrate run
 ```
 
 ### Poblar base de datos con datos seed
