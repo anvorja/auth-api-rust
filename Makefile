@@ -70,10 +70,23 @@ test-verbose: ## Tests con output detallado
 	@echo "$(GREEN)Running tests (verbose)...$(NC)"
 	@cargo test -- --nocapture --test-threads=1
 
-coverage: ## Generar reporte de coverage (requiere cargo-tarpaulin)
-	@echo "$(GREEN)Generating coverage report...$(NC)"
-	@cargo tarpaulin --out Html --output-dir coverage --exclude-files 'src/bin/*'
+coverage-all: test-db-setup ## Coverage completo (incluye tests con DB)
+	@echo "$(GREEN)Generating full coverage report (including DB tests)...$(NC)"
+	@rm -rf coverage
+	@cargo tarpaulin --out Html --output-dir coverage \
+		--exclude-files 'src/bin/*' \
+		--force-clean \
+		--ignored \
+		-- --test-threads=1
 
+coverage-fast: ## Coverage rápido (sin DB)
+	@echo "$(GREEN)Generating fast coverage report...$(NC)"
+	@rm -rf coverage
+	@cargo tarpaulin --out Html --output-dir coverage \
+		--exclude-files 'src/bin/*' \
+		--force-clean
+
+coverage: coverage-fast ## Alias para coverage-fast (compatibilidad)
 # ============================================================================
 # DATABASE OPERATIONS
 # ============================================================================
