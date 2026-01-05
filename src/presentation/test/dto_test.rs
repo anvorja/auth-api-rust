@@ -272,3 +272,72 @@ fn test_refresh_token_claims_new() {
     assert!(claims.exp > claims.iat);
     assert_eq!(claims.exp - claims.iat, expires_in);
 }
+
+#[test]
+fn test_update_profile_request_validation() {
+    use crate::presentation::UpdateProfileRequest;
+
+    let valid_request = UpdateProfileRequest {
+        first_name: "Jane".to_string(),
+        last_name: "Doe".to_string(),
+    };
+    assert!(valid_request.validate().is_ok());
+
+    let invalid_request = UpdateProfileRequest {
+        first_name: "".to_string(),
+        last_name: "Doe".to_string(),
+    };
+    assert!(invalid_request.validate().is_err());
+}
+
+#[test]
+fn test_admin_update_username_request_validation() {
+    use crate::presentation::AdminUpdateUsernameRequest;
+    use uuid::Uuid;
+
+    let valid_request = AdminUpdateUsernameRequest {
+        user_id: Uuid::new_v4().to_string(),
+        new_username: "newuser".to_string(),
+    };
+    assert!(valid_request.validate().is_ok());
+
+    let invalid_request = AdminUpdateUsernameRequest {
+        user_id: Uuid::new_v4().to_string(),
+        new_username: "ab".to_string(), // muy corto
+    };
+    assert!(invalid_request.validate().is_err());
+}
+
+#[test]
+fn test_admin_update_email_request_validation() {
+    use crate::presentation::AdminUpdateEmailRequest;
+    use uuid::Uuid;
+
+    let valid_request = AdminUpdateEmailRequest {
+        user_id: Uuid::new_v4().to_string(),
+        new_email: "new@example.com".to_string(),
+    };
+    assert!(valid_request.validate().is_ok());
+
+    let invalid_request = AdminUpdateEmailRequest {
+        user_id: Uuid::new_v4().to_string(),
+        new_email: "invalid-email".to_string(),
+    };
+    assert!(invalid_request.validate().is_err());
+}
+
+#[test]
+fn test_user_response_includes_role() {
+    use crate::domain::{User, Username, Email, PasswordHash};
+
+    let user = User::new(
+        Username::new("johndoe".to_string()).unwrap(),
+        Email::new("john@example.com".to_string()).unwrap(),
+        "John".to_string(),
+        "Doe".to_string(),
+        PasswordHash::from_hash("hash".to_string()),
+    );
+
+    let response = UserResponse::from_domain(&user);
+    assert_eq!(response.role, "user");
+}

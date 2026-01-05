@@ -5,14 +5,20 @@
       <w>Hashear</w>
       <w>Postgre</w>
       <w>bindear</w>
+      <w>deletetest</w>
       <w>dtos</w>
       <w>hasheado</w>
       <w>isready</w>
       <w>johndoe</w>
       <w>newpass</w>
+      <w>newuser</w>
+      <w>newusername</w>
+      <w>normaluser</w>
       <w>nosniff</w>
       <w>pgpassword</w>
+      <w>profiletest</w>
       <w>rustfmt</w>
+      <w>targetuser</w>
       <w>testuser</w>
       <w>usecase</w>
       <w>xvcj</w>

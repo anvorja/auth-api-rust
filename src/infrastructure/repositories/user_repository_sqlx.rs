@@ -3,7 +3,7 @@ use chrono::{DateTime, Utc};
 use sqlx::PgPool;
 use uuid::Uuid;
 
-use crate::domain::{Email, PasswordHash, User, UserId, Username};
+use crate::domain::{Email, PasswordHash, User, UserId, UserRole, Username};
 use crate::error::{AppError, AppResult};
 
 /// Trait para abstraer el repositorio de usuarios
@@ -58,6 +58,7 @@ impl UserRepositorySqlx {
         first_name: String,
         last_name: String,
         password_hash: String,
+        role: String,
         created_at: DateTime<Utc>,
         updated_at: DateTime<Utc>,
     ) -> AppResult<User> {
@@ -67,6 +68,8 @@ impl UserRepositorySqlx {
         let email = Email::new(email)
             .map_err(|e| AppError::DatabaseError(format!("Invalid email from DB: {}", e)))?;
         let password_hash = PasswordHash::from_hash(password_hash);
+        let user_role = UserRole::from_string(&role)
+            .map_err(|e| AppError::DatabaseError(format!("Invalid role from DB: {}", e)))?;
 
         Ok(User::from_repository(
             user_id,
@@ -75,6 +78,7 @@ impl UserRepositorySqlx {
             first_name,
             last_name,
             password_hash,
+            user_role,
             created_at,
             updated_at,
         ))
@@ -86,8 +90,8 @@ impl UserRepository for UserRepositorySqlx {
     async fn create(&self, user: &User) -> AppResult<()> {
         sqlx::query!(
             r#"
-            INSERT INTO users (id, username, email, first_name, last_name, password_hash, created_at, updated_at)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            INSERT INTO users (id, username, email, first_name, last_name, password_hash, role, created_at, updated_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
             "#,
             user.id().value(),
             user.username().value(),
@@ -95,6 +99,7 @@ impl UserRepository for UserRepositorySqlx {
             user.first_name(),
             user.last_name(),
             user.password_hash().value(),
+            user.role().to_string(),
             user.created_at(),
             user.updated_at(),
         )
@@ -108,7 +113,7 @@ impl UserRepository for UserRepositorySqlx {
     async fn find_by_id(&self, id: UserId) -> AppResult<Option<User>> {
         let result = sqlx::query!(
             r#"
-            SELECT id, username, email, first_name, last_name, password_hash, created_at, updated_at
+            SELECT id, username, email, first_name, last_name, password_hash, role, created_at, updated_at
             FROM users
             WHERE id = $1
             "#,
@@ -126,6 +131,7 @@ impl UserRepository for UserRepositorySqlx {
                     row.first_name,
                     row.last_name,
                     row.password_hash,
+                    row.role,
                     row.created_at,
                     row.updated_at,
                 )?;
@@ -138,7 +144,7 @@ impl UserRepository for UserRepositorySqlx {
     async fn find_by_username(&self, username: &Username) -> AppResult<Option<User>> {
         let result = sqlx::query!(
             r#"
-            SELECT id, username, email, first_name, last_name, password_hash, created_at, updated_at
+            SELECT id, username, email, first_name, last_name, password_hash, role, created_at, updated_at
             FROM users
             WHERE username = $1
             "#,
@@ -156,6 +162,7 @@ impl UserRepository for UserRepositorySqlx {
                     row.first_name,
                     row.last_name,
                     row.password_hash,
+                    row.role,
                     row.created_at,
                     row.updated_at,
                 )?;
@@ -168,7 +175,7 @@ impl UserRepository for UserRepositorySqlx {
     async fn find_by_email(&self, email: &Email) -> AppResult<Option<User>> {
         let result = sqlx::query!(
             r#"
-            SELECT id, username, email, first_name, last_name, password_hash, created_at, updated_at
+            SELECT id, username, email, first_name, last_name, password_hash, role, created_at, updated_at
             FROM users
             WHERE email = $1
             "#,
@@ -186,6 +193,7 @@ impl UserRepository for UserRepositorySqlx {
                     row.first_name,
                     row.last_name,
                     row.password_hash,
+                    row.role,
                     row.created_at,
                     row.updated_at,
                 )?;
@@ -198,7 +206,7 @@ impl UserRepository for UserRepositorySqlx {
     async fn find_by_username_or_email(&self, identifier: &str) -> AppResult<Option<User>> {
         let result = sqlx::query!(
             r#"
-            SELECT id, username, email, first_name, last_name, password_hash, created_at, updated_at
+            SELECT id, username, email, first_name, last_name, password_hash, role, created_at, updated_at
             FROM users
             WHERE username = $1 OR email = $1
             "#,
@@ -216,6 +224,7 @@ impl UserRepository for UserRepositorySqlx {
                     row.first_name,
                     row.last_name,
                     row.password_hash,
+                    row.role,
                     row.created_at,
                     row.updated_at,
                 )?;
@@ -229,16 +238,22 @@ impl UserRepository for UserRepositorySqlx {
         let result = sqlx::query!(
             r#"
             UPDATE users
-            SET first_name = $2,
-                last_name = $3,
-                password_hash = $4,
-                updated_at = $5
+            SET username = $2,
+                email = $3,
+                first_name = $4,
+                last_name = $5,
+                password_hash = $6,
+                role = $7,
+                updated_at = $8
             WHERE id = $1
             "#,
             user.id().value(),
+            user.username().value(),
+            user.email().value(),
             user.first_name(),
             user.last_name(),
             user.password_hash().value(),
+            user.role().to_string(),
             user.updated_at(),
         )
             .execute(&self.pool)

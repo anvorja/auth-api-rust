@@ -66,17 +66,17 @@ async fn main() -> anyhow::Result<()> {
 
     // Definir usuarios de prueba
     let users = vec![
-        ("admin", "Admin", "User", "admin@example.com", "Admin123!"),
-        ("johndoe", "John", "Doe", "john.doe@example.com", "JohnDoe123!"),
-        ("janedoe", "Jane", "Doe", "jane.doe@example.com", "JaneDoe123!"),
-        ("testuser", "Test", "User", "test@example.com", "TestUser123!"),
-        ("developer", "Developer", "Account", "dev@example.com", "Developer123!"),
+        ("admin", "Admin", "User", "admin@example.com", "Admin123!", "admin"),
+        ("johndoe", "John", "Doe", "john.doe@example.com", "JohnDoe123!", "user"),
+        ("janedoe", "Jane", "Doe", "jane.doe@example.com", "JaneDoe123!", "user"),
+        ("testuser", "Test", "User", "test@example.com", "TestUser123!", "user"),
+        ("developer", "Developer", "Account", "dev@example.com", "Developer123!", "user"),
     ];
 
     let mut created = 0;
     let mut skipped = 0;
 
-    for (username, first_name, last_name, email, password) in users {
+    for (username, first_name, last_name, email, password, role) in users {
         // Verificar si el usuario ya existe
         let exists = sqlx::query!(
             "SELECT EXISTS(SELECT 1 FROM users WHERE username = $1 OR email = $2) as \"exists!\"",
@@ -106,8 +106,8 @@ async fn main() -> anyhow::Result<()> {
         // Insertar usuario
         sqlx::query!(
             r#"
-            INSERT INTO users (id, username, email, first_name, last_name, password_hash, created_at, updated_at)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            INSERT INTO users (id, username, email, first_name, last_name, password_hash, role, created_at, updated_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
             "#,
             id,
             username,
@@ -115,6 +115,7 @@ async fn main() -> anyhow::Result<()> {
             first_name,
             last_name,
             password_hash,
+            role,
             now,
             now
         )

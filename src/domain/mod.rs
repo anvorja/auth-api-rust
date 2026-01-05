@@ -4,4 +4,4 @@ pub mod user;
 #[cfg(test)]
 mod test;
 
-pub use user::{Email, PasswordHash, User, UserId, Username};
+pub use user::{Email, PasswordHash, User, UserId, Username, UserRole};
