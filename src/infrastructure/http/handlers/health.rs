@@ -28,14 +28,11 @@ where
     let pool = state.as_ref();
     let db_healthy = health_check(pool).await;
 
-    let status = if db_healthy {
-        "healthy"
+    let response = if db_healthy {
+        HealthResponse::healthy()
     } else {
-        "unhealthy"
+        HealthResponse::unhealthy()
     };
 
-    Json(HealthResponse::new(
-        status.to_string(),
-        env!("CARGO_PKG_VERSION").to_string(),
-    ))
+    Json(response)
 }

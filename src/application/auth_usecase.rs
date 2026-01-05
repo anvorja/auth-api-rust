@@ -47,6 +47,7 @@ where
     }
 
     /// Getter para el repositorio (usado principalmente en tests)
+    #[cfg(test)]
     pub(crate) fn user_repository(&self) -> &Arc<R> {
         &self.user_repository
     }

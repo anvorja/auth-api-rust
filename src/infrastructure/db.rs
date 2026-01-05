@@ -103,6 +103,7 @@ pub async fn health_check(pool: &DbPool) -> bool {
 }
 
 /// Cierra el pool de conexiones de manera ordenada
+#[cfg(test)]
 pub async fn close_pool(pool: DbPool) {
     tracing::info!("Cerrando pool de conexiones...");
     pool.close().await;
@@ -111,6 +112,7 @@ pub async fn close_pool(pool: DbPool) {
 
 // Se usan solo en testing: close_pool, pool_stats, PoolStats
 /// Obtiene estadísticas del pool de conexiones
+#[cfg(test)]
 pub fn pool_stats(pool: &DbPool) -> PoolStats {
     PoolStats {
         size: pool.size(),

@@ -104,6 +104,7 @@ impl User {
         &self.last_name
     }
 
+    #[allow(dead_code)]
     pub fn full_name(&self) -> String {
         format!("{} {}", self.first_name, self.last_name)
     }
