@@ -319,37 +319,66 @@ auth-api-rust/
 └── src/
     ├── main.rs           
     ├── app.rs   
-    ├── error.rs                
+    ├── error.rs    
+    │
+    ├── test/
+    │   ├── mod.rs
+    │   ├── app_test.rs
+    │   └── error_test.rs                
     │     
     ├── config/           
     │   ├── mod.rs
     │   └── settings.rs
+    │   └── test/
+    │       ├── mod.rs
+    │       └── settings_test.rs    
     │    
     ├── domain/           
     │   ├── mod.rs
     │   └── user.rs
+    │   └── test/
+    │       ├── mod.rs
+    │       └── user_test.rs    
     │        
     ├── application/     
     │   ├── mod.rs
     │   └── auth_usecase.rs
+    │   └── test/
+    │       ├── mod.rs
+    │       └── auth_usecase_test.rs    
     │        
     ├── infrastructure/  
     │   ├── mod.rs
     │   ├── db.rs
     │   │    
+    │   ├── test/                  # Tests de infraestructura base
+    │   │   ├── mod.rs
+    │   │   └── db_test.rs    
+    │   │     
     │   ├── repositories/
     │   │   ├── mod.rs
     │   │   └── user_repository_sqlx.rs
+    │   │   └── test/
+    │   │       ├── mod.rs
+    │   │       └── user_repository_sqlx_test.rs    
     │   │    
     │   ├── security/       
     │   │   ├── mod.rs
     │   │   ├── jwt.rs          
-    │   │   └── password.rs    
+    │   │   └── password.rs   
+    │   │   └── test/
+    │   │       ├── mod.rs
+    │   │       ├── jwt_test.rs
+    │   │       └── password_test.rs     
     │   │     
     │   └── http/               
     │       ├── mod.rs
     │       ├── routes.rs
     │       │
+    │       ├── test/
+    │       │   ├── mod.rs
+    │       │   └── routes_test.rs
+    │       │       
     │       ├── handlers/      
     │       │   ├── mod.rs
     │       │   ├── auth.rs
@@ -361,10 +390,20 @@ auth-api-rust/
     │           ├── auth.rs
     │           ├── cors.rs
     │           └── security_headers.rs
+    │           └── test/
+    │               ├── mod.rs
+    │               ├── auth_test.rs
+    │               ├── cors_test.rs
+    │               ├── security_headers_test.rs
+    │               └── test_helpers.rs
     │    
     ├── presentation/    
     │   ├── mod.rs
     │   └── dto.rs
+    │   └── test/
+    │       ├── mod.rs
+    │       └── dto_test.rs
+    │     
     └── bin/            
         └── seed_dev.rs
 ```
