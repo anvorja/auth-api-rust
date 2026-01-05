@@ -7,7 +7,6 @@ default-run = "auth-api-rust"
 [dependencies]
 # Web Framework
 axum = { version = "0.8.0", features = ["macros"] }
-axum-extra = { version = "0.12.3", features = ["cookie"] }
 tower = "0.4"
 tower-http = { version = "0.6.8", features = ["cors", "trace"] }
 tokio = { version = "1", features = ["full"] }
@@ -31,7 +30,6 @@ uuid = { version = "1.6", features = ["serde", "v4"] }
 
 # Configuration
 dotenvy = "0.15"
-envy = "0.4"
 
 # OpenAPI
 utoipa = { version = "5.4.0", features = ["axum_extras", "chrono", "uuid"] }
@@ -43,7 +41,6 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
 # Time
 chrono = { version = "0.4", features = ["serde"] }
-time = "0.3"
 
 # Error handling
 thiserror = "2.0.17"
@@ -53,7 +50,6 @@ anyhow = "1.0"
 async-trait = "0.1"
 futures = "0.3"
 temp-env = "0.3.6"
-serial_test = "3.2.0"
 
 # Binarios explícitos
 [[bin]]
