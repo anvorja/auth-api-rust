@@ -87,6 +87,36 @@ ENVIRONMENT=
 RUST_LOG=
 ```
 
+```bash
+# =============================================================================
+# NOTAS DE CONFIGURACIÓN
+# =============================================================================
+#
+# SERVER_HOST:
+#   - Development/Test: 127.0.0.1 (solo localhost)
+#   - Production: 0.0.0.0 (todas las interfaces - REQUERIDO en Render)
+#
+# ENVIRONMENT:
+#   - development: CORS permisivo, CSP relajado para Swagger
+#   - production: CORS restrictivo, CSP estricto, HSTS habilitado
+#   - test: Configuración optimizada para tests
+#
+# ALLOWED_ORIGINS:
+#   - Development: Permite HTTP localhost (para dev)
+#   - Production: SOLO HTTPS (seguridad)
+#
+# JWT_SECRET:
+#   - Mínimo 32 caracteres
+#   - En producción: usar secrets manager o Render env vars
+#
+# DATABASE_URL:
+#   - Development: localhost
+#   - Production: Railway/Render Postgres
+#   - Test: base de datos separada (usuarios_rust_db_test)
+#
+# =============================================================================
+```
+
 ### 4. Instalar SQLx CL y ejecutar migraciones
 
 ```bash
