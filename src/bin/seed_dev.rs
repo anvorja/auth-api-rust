@@ -20,7 +20,28 @@ use dotenvy::dotenv;
 async fn main() -> anyhow::Result<()> {
     dotenv().ok();
 
-    println!("\n⚙ Iniciando seed de usuarios de prueba...");
+    // ============================================================================
+    // Verificar que NO estamos en producción
+    // ============================================================================
+    let environment = env::var("ENVIRONMENT").unwrap_or_else(|_| "development".to_string());
+
+    if environment.to_lowercase() == "production" {
+        eprintln!("❌ ERROR: NO ejecutar seed en producción");
+        eprintln!();
+        eprintln!("El entorno actual es: {}", environment);
+        eprintln!("Los datos seed son solo para desarrollo/staging.");
+        eprintln!();
+        eprintln!("💡 Si necesitas datos en producción:");
+        eprintln!("   - Usa migraciones con datos iniciales");
+        eprintln!("   - O un proceso de importación controlado");
+        eprintln!();
+        std::process::exit(1);
+    }
+
+    println!();
+    println!("✓ Entorno: {} (seguro para seed)", environment);
+    println!();
+    println!("⚙ Iniciando seed de usuarios de prueba...");
 
     let database_url = env::var("DATABASE_URL")
         .expect("DATABASE_URL debe estar configurada en .env");
@@ -37,6 +58,8 @@ async fn main() -> anyhow::Result<()> {
     // Opcional: Limpiar usuarios existentes antes de escritura
     println!("🧹 Limpiando tabla de usuarios...");
     sqlx::query!("DELETE FROM users").execute(&pool).await?;
+    println!("✓ Tabla limpiada");
+    println!();
 
     println!("📦 Creando usuarios de prueba...");
     println!();
