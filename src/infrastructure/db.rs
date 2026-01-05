@@ -109,6 +109,7 @@ pub async fn close_pool(pool: DbPool) {
     tracing::info!("✓ Pool cerrado");
 }
 
+// Se usan solo en testing: close_pool, pool_stats, PoolStats
 /// Obtiene estadísticas del pool de conexiones
 pub fn pool_stats(pool: &DbPool) -> PoolStats {
     PoolStats {
