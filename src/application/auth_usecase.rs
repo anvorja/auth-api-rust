@@ -47,7 +47,6 @@ where
     }
 
     /// Getter para el repositorio (usado principalmente en tests)
-    #[cfg(test)]
     pub(crate) fn user_repository(&self) -> &Arc<R> {
         &self.user_repository
     }
@@ -411,6 +410,37 @@ where
 
         tracing::info!("Email actualizado exitosamente por admin");
         Ok(user)
+    }
+
+    // ==========================================================================
+    // MÉTODOS DE BÚSQUEDA (para endpoints admin)
+    // ==========================================================================
+
+    /// Caso de uso: Buscar usuario por username o email
+    ///
+    /// Usado por admin para buscar usuarios
+    pub async fn find_user_by_username_or_email(&self, identifier: &str) -> AppResult<Option<User>> {
+        self.user_repository
+            .find_by_username_or_email(identifier)
+            .await
+    }
+
+    /// Caso de uso: Buscar usuario por username
+    ///
+    /// Usado por admin para buscar usuarios específicamente por username
+    pub async fn find_user_by_username(&self, username: &Username) -> AppResult<Option<User>> {
+        self.user_repository
+            .find_by_username(username)
+            .await
+    }
+
+    /// Caso de uso: Buscar usuario por email
+    ///
+    /// Usado por admin para buscar usuarios específicamente por email
+    pub async fn find_user_by_email(&self, email: &Email) -> AppResult<Option<User>> {
+        self.user_repository
+            .find_by_email(email)
+            .await
     }
 }
 

@@ -1,12 +1,13 @@
 // src/infrastructure/http/handlers/user.rs
 use axum::{
-    extract::State,
+    extract::{State, Path, Query},
     http::StatusCode,
     response::IntoResponse,
     Extension,
     Json,
 };
 use validator::Validate;
+use serde::Deserialize;
 
 use crate::application::AuthUseCase;
 use crate::error::AppError;
@@ -14,7 +15,13 @@ use crate::infrastructure::{JwtService, PasswordHasher, UserRepository};
 use crate::infrastructure::http::middleware::AuthenticatedUser;
 use crate::presentation::{AdminUpdateEmailRequest, AdminUpdateUsernameRequest, ChangePasswordRequest, SuccessResponse, UpdateProfileRequest, UserResponse};
 use std::sync::Arc;
-use crate::domain::UserId;
+use crate::domain::{UserId, Username, Email};
+
+/// Query parameter para búsqueda de usuario
+#[derive(Debug, Deserialize)]
+pub struct SearchUserQuery {
+    pub identifier: String,
+}
 
 /// Handler para obtener perfil del usuario autenticado
 ///
@@ -109,7 +116,7 @@ where
 
 /// Handler para actualizar perfil
 ///
-/// PUT /api/v1/users/profile
+/// PATCH /api/v1/users/profile
 #[utoipa::path(
     put,
     path = "/api/v1/users/profile",
@@ -180,6 +187,208 @@ where
         message: "Cuenta eliminada exitosamente".to_string(),
     };
 
+    Ok((StatusCode::OK, Json(response)))
+}
+
+/// Handler para buscar usuario por username o email
+///
+/// GET /api/v1/admin/users/search?identifier={username_or_email}
+#[utoipa::path(
+    get,
+    path = "/api/v1/admin/users/search",
+    params(
+        ("identifier" = String, Query, description = "Username o email del usuario a buscar")
+    ),
+    responses(
+        (status = 200, description = "Usuario encontrado", body = UserResponse),
+        (status = 401, description = "No autenticado"),
+        (status = 403, description = "No autorizado (no es admin)"),
+        (status = 404, description = "Usuario no encontrado")
+    ),
+    tag = "Admin",
+    security(("bearer_auth" = []))
+)]
+pub async fn admin_search_user_handler<R, P, J, S>(
+    State(state): State<S>,
+    Extension(AuthenticatedUser(admin)): Extension<AuthenticatedUser>,
+    Query(query): Query<SearchUserQuery>,
+) -> Result<impl IntoResponse, AppError>
+where
+    R: UserRepository + 'static,
+    P: PasswordHasher + 'static,
+    J: JwtService + 'static,
+    S: AsRef<Arc<AuthUseCase<R, P, J>>> + Clone + Send + Sync + 'static,
+{
+    // Verificar que es admin
+    if !admin.is_admin() {
+        tracing::warn!("Intento de búsqueda admin por usuario no autorizado: {}", admin.id().to_string());
+        return Err(AppError::Unauthorized);
+    }
+
+    let auth_usecase: &Arc<AuthUseCase<R, P, J>> = state.as_ref();
+
+    // Buscar por username o email usando el método del usecase
+    let user = auth_usecase
+        .find_user_by_username_or_email(&query.identifier)
+        .await?
+        .ok_or(AppError::UserNotFound)?;
+
+    let response = UserResponse::from_domain(&user);
+    Ok((StatusCode::OK, Json(response)))
+}
+
+/// Handler para obtener usuario por ID (admin)
+///
+/// GET /api/v1/admin/users/{user_id}
+#[utoipa::path(
+    get,
+    path = "/api/v1/admin/users/{user_id}",
+    params(
+        ("user_id" = String, Path, description = "UUID del usuario")
+    ),
+    responses(
+        (status = 200, description = "Usuario encontrado", body = UserResponse),
+        (status = 400, description = "UUID inválido"),
+        (status = 401, description = "No autenticado"),
+        (status = 403, description = "No autorizado (no es admin)"),
+        (status = 404, description = "Usuario no encontrado")
+    ),
+    tag = "Admin",
+    security(("bearer_auth" = []))
+)]
+pub async fn admin_get_user_by_id_handler<R, P, J, S>(
+    State(state): State<S>,
+    Extension(AuthenticatedUser(admin)): Extension<AuthenticatedUser>,
+    Path(user_id): Path<String>,
+) -> Result<impl IntoResponse, AppError>
+where
+    R: UserRepository + 'static,
+    P: PasswordHasher + 'static,
+    J: JwtService + 'static,
+    S: AsRef<Arc<AuthUseCase<R, P, J>>> + Clone + Send + Sync + 'static,
+{
+    // Verificar que es admin
+    if !admin.is_admin() {
+        tracing::warn!("Intento de obtener usuario por ID por usuario no autorizado: {}", admin.id().to_string());
+        return Err(AppError::Unauthorized);
+    }
+
+    let auth_usecase: &Arc<AuthUseCase<R, P, J>> = state.as_ref();
+
+    // Parsear y validar UUID
+    let target_user_id = UserId::from_string(&user_id)
+        .map_err(|e| AppError::ValidationError(e))?;
+
+    // Obtener usuario
+    let user = auth_usecase
+        .get_user_by_id(target_user_id)
+        .await?;
+
+    let response = UserResponse::from_domain(&user);
+    Ok((StatusCode::OK, Json(response)))
+}
+
+/// Handler para obtener usuario por username (admin)
+///
+/// GET /api/v1/admin/users/by-username/{username}
+#[utoipa::path(
+    get,
+    path = "/api/v1/admin/users/by-username/{username}",
+    params(
+        ("username" = String, Path, description = "Username del usuario")
+    ),
+    responses(
+        (status = 200, description = "Usuario encontrado", body = UserResponse),
+        (status = 400, description = "Username inválido"),
+        (status = 401, description = "No autenticado"),
+        (status = 403, description = "No autorizado (no es admin)"),
+        (status = 404, description = "Usuario no encontrado")
+    ),
+    tag = "Admin",
+    security(("bearer_auth" = []))
+)]
+pub async fn admin_get_user_by_username_handler<R, P, J, S>(
+    State(state): State<S>,
+    Extension(AuthenticatedUser(admin)): Extension<AuthenticatedUser>,
+    Path(username): Path<String>,
+) -> Result<impl IntoResponse, AppError>
+where
+    R: UserRepository + 'static,
+    P: PasswordHasher + 'static,
+    J: JwtService + 'static,
+    S: AsRef<Arc<AuthUseCase<R, P, J>>> + Clone + Send + Sync + 'static,
+{
+    // Verificar que es admin
+    if !admin.is_admin() {
+        tracing::warn!("Intento de obtener usuario por username por usuario no autorizado: {}", admin.id().to_string());
+        return Err(AppError::Unauthorized);
+    }
+
+    let auth_usecase: &Arc<AuthUseCase<R, P, J>> = state.as_ref();
+
+    // Validar y parsear username
+    let username_vo = Username::new(username)
+        .map_err(|e| AppError::ValidationError(e))?;
+
+    // Buscar usuario usando el método del usecase
+    let user = auth_usecase
+        .find_user_by_username(&username_vo)
+        .await?
+        .ok_or(AppError::UserNotFound)?;
+
+    let response = UserResponse::from_domain(&user);
+    Ok((StatusCode::OK, Json(response)))
+}
+
+/// Handler para obtener usuario por email (admin)
+///
+/// GET /api/v1/admin/users/by-email/{email}
+#[utoipa::path(
+    get,
+    path = "/api/v1/admin/users/by-email/{email}",
+    params(
+        ("email" = String, Path, description = "Email del usuario")
+    ),
+    responses(
+        (status = 200, description = "Usuario encontrado", body = UserResponse),
+        (status = 400, description = "Email inválido"),
+        (status = 401, description = "No autenticado"),
+        (status = 403, description = "No autorizado (no es admin)"),
+        (status = 404, description = "Usuario no encontrado")
+    ),
+    tag = "Admin",
+    security(("bearer_auth" = []))
+)]
+pub async fn admin_get_user_by_email_handler<R, P, J, S>(
+    State(state): State<S>,
+    Extension(AuthenticatedUser(admin)): Extension<AuthenticatedUser>,
+    Path(email): Path<String>,
+) -> Result<impl IntoResponse, AppError>
+where
+    R: UserRepository + 'static,
+    P: PasswordHasher + 'static,
+    J: JwtService + 'static,
+    S: AsRef<Arc<AuthUseCase<R, P, J>>> + Clone + Send + Sync + 'static,
+{
+    // Verificar que es admin
+    if !admin.is_admin() {
+        tracing::warn!("Intento de obtener usuario por email por usuario no autorizado: {}", admin.id().to_string());
+        return Err(AppError::Unauthorized);
+    }
+
+    let auth_usecase: &Arc<AuthUseCase<R, P, J>> = state.as_ref();
+
+    // Validar y parsear email
+    let email_vo = Email::new(email)
+        .map_err(|e| AppError::ValidationError(e))?;
+
+    // Buscar usuario
+    let user = auth_usecase
+        .find_user_by_email(&email_vo)
+        .await?
+        .ok_or(AppError::UserNotFound)?;
+
+    let response = UserResponse::from_domain(&user);
     Ok((StatusCode::OK, Json(response)))
 }
 

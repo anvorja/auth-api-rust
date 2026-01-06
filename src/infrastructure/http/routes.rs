@@ -1,7 +1,7 @@
 // src/infrastructure/http/routes.rs
 use axum::{
     middleware,
-    routing::{get, post, put, delete},
+    routing::{get, post, put, patch, delete},
     Router,
 };
 use std::sync::Arc;
@@ -24,6 +24,10 @@ use crate::infrastructure::{
             change_password_handler,
             update_profile_handler,
             delete_account_handler,
+            admin_search_user_handler,
+            admin_get_user_by_id_handler,
+            admin_get_user_by_username_handler,
+            admin_get_user_by_email_handler,
             admin_update_username_handler,
             admin_update_email_handler,
         },
@@ -135,12 +139,16 @@ where
     // Rutas protegidas de usuarios (requieren autenticación)
     let user_routes: Router<AppState<R, P, J>> = Router::new()
         .route("/profile", get(get_profile_handler::<R, P, J, AppState<R, P, J>>))
-        .route("/profile", put(update_profile_handler::<R, P, J, AppState<R, P, J>>))  // ← NUEVO
+        .route("/profile", patch(update_profile_handler::<R, P, J, AppState<R, P, J>>))
         .route("/change-password", post(change_password_handler::<R, P, J, AppState<R, P, J>>))
         .route("/account", delete(delete_account_handler::<R, P, J, AppState<R, P, J>>));
 
     // Rutas protegidas de admin
     let admin_routes: Router<AppState<R, P, J>> = Router::new()
+        .route("/users/search", get(admin_search_user_handler::<R, P, J, AppState<R, P, J>>))
+        .route("/users/{user_id}", get(admin_get_user_by_id_handler::<R, P, J, AppState<R, P, J>>))
+        .route("/users/by-username/{username}", get(admin_get_user_by_username_handler::<R, P, J, AppState<R, P, J>>))
+        .route("/users/by-email/{email}", get(admin_get_user_by_email_handler::<R, P, J, AppState<R, P, J>>))
         .route("/users/username", put(admin_update_username_handler::<R, P, J, AppState<R, P, J>>))
         .route("/users/email", put(admin_update_email_handler::<R, P, J, AppState<R, P, J>>));
 
@@ -218,6 +226,10 @@ impl Modify for SecurityAddon {
         crate::infrastructure::http::handlers::delete_account_handler,
         crate::infrastructure::http::handlers::admin_update_username_handler,
         crate::infrastructure::http::handlers::admin_update_email_handler,
+        crate::infrastructure::http::handlers::admin_search_user_handler,
+        crate::infrastructure::http::handlers::admin_get_user_by_id_handler,
+        crate::infrastructure::http::handlers::admin_get_user_by_username_handler,
+        crate::infrastructure::http::handlers::admin_get_user_by_email_handler,
     ),
     components(
         schemas(
