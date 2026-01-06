@@ -1,7 +1,7 @@
 // src/application/auth_usecase.rs
 use std::sync::Arc;
 
-use crate::domain::{User, UserId};
+use crate::domain::{Email, User, UserId, Username};
 use crate::error::{AppError, AppResult};
 use crate::infrastructure::{JwtService, PasswordHasher, UserRepository};
 use crate::presentation::{LoginRequest, RegisterRequest};
@@ -278,6 +278,173 @@ where
         tracing::info!("Password actualizada exitosamente");
 
         Ok(())
+    }
+
+    /// Caso de uso: Actualizar perfil (nombre y/o apellido)
+    pub async fn update_profile(
+        &self,
+        user_id: UserId,
+        first_name: Option<String>,
+        last_name: Option<String>,
+    ) -> AppResult<User> {
+        tracing::info!("Actualizando perfil para usuario: {}", user_id.to_string());
+
+        // Buscar usuario
+        let mut user = self.user_repository
+            .find_by_id(user_id)
+            .await?
+            .ok_or(AppError::UserNotFound)?;
+
+        // Aplicar solo los cambios proporcionados
+        let new_first_name = first_name.unwrap_or_else(|| user.first_name().to_string());
+        let new_last_name = last_name.unwrap_or_else(|| user.last_name().to_string());
+
+        // Actualizar perfil
+        user.update_profile(new_first_name, new_last_name);
+
+        // Guardar cambios
+        self.user_repository.update(&user).await?;
+
+        tracing::info!("Perfil actualizado exitosamente");
+        Ok(user)
+    }
+
+    /// Caso de uso: Eliminar cuenta (el usuario elimina su propia cuenta)
+    pub async fn delete_account(&self, user_id: UserId) -> AppResult<()> {
+        tracing::info!("Eliminando cuenta: {}", user_id.to_string());
+
+        // Verificar que el usuario existe
+        let user = self.user_repository
+            .find_by_id(user_id)
+            .await?
+            .ok_or(AppError::UserNotFound)?;
+
+        // Eliminar usuario
+        self.user_repository.delete(user.id()).await?;
+
+        tracing::info!("Cuenta eliminada exitosamente: {}", user.username().value());
+        Ok(())
+    }
+
+    /// Caso de uso: Admin actualiza username de un usuario
+    pub async fn admin_update_username(
+        &self,
+        admin_id: UserId,
+        target_user_id: UserId,
+        new_username: String,
+    ) -> AppResult<User> {
+        tracing::info!("Admin {} actualizando username de usuario {}",
+        admin_id.to_string(), target_user_id.to_string());
+
+        // Verificar que quien hace la petición es admin
+        let admin = self.user_repository
+            .find_by_id(admin_id)
+            .await?
+            .ok_or(AppError::UserNotFound)?;
+
+        if !admin.is_admin() {
+            tracing::warn!("Intento de operación admin por usuario no autorizado: {}",
+            admin_id.to_string());
+            return Err(AppError::Unauthorized);
+        }
+
+        // Buscar usuario objetivo
+        let mut user = self.user_repository
+            .find_by_id(target_user_id)
+            .await?
+            .ok_or(AppError::UserNotFound)?;
+
+        // Validar nuevo username
+        let username = Username::new(new_username)
+            .map_err(|e| AppError::ValidationError(e))?;
+
+        // Verificar que el username no esté en uso
+        if self.user_repository.exists_by_username(&username).await? {
+            return Err(AppError::UserAlreadyExists);
+        }
+
+        // Actualizar username
+        user.update_username(username);
+        self.user_repository.update(&user).await?;
+
+        tracing::info!("Username actualizado exitosamente por admin");
+        Ok(user)
+    }
+
+    /// Caso de uso: Admin actualiza email de un usuario
+    pub async fn admin_update_email(
+        &self,
+        admin_id: UserId,
+        target_user_id: UserId,
+        new_email: String,
+    ) -> AppResult<User> {
+        tracing::info!("Admin {} actualizando email de usuario {}",
+        admin_id.to_string(), target_user_id.to_string());
+
+        // Verificar que quien hace la petición es admin
+        let admin = self.user_repository
+            .find_by_id(admin_id)
+            .await?
+            .ok_or(AppError::UserNotFound)?;
+
+        if !admin.is_admin() {
+            tracing::warn!("Intento de operación admin por usuario no autorizado: {}",
+            admin_id.to_string());
+            return Err(AppError::Unauthorized);
+        }
+
+        // Buscar usuario objetivo
+        let mut user = self.user_repository
+            .find_by_id(target_user_id)
+            .await?
+            .ok_or(AppError::UserNotFound)?;
+
+        // Validar nuevo email
+        let email = Email::new(new_email)
+            .map_err(|e| AppError::ValidationError(e))?;
+
+        // Verificar que el email no esté en uso
+        if self.user_repository.exists_by_email(&email).await? {
+            return Err(AppError::UserAlreadyExists);
+        }
+
+        // Actualizar email
+        user.update_email(email);
+        self.user_repository.update(&user).await?;
+
+        tracing::info!("Email actualizado exitosamente por admin");
+        Ok(user)
+    }
+
+    // ==========================================================================
+    // MÉTODOS DE BÚSQUEDA (para endpoints admin)
+    // ==========================================================================
+
+    /// Caso de uso: Buscar usuario por username o email
+    ///
+    /// Usado por admin para buscar usuarios
+    pub async fn find_user_by_username_or_email(&self, identifier: &str) -> AppResult<Option<User>> {
+        self.user_repository
+            .find_by_username_or_email(identifier)
+            .await
+    }
+
+    /// Caso de uso: Buscar usuario por username
+    ///
+    /// Usado por admin para buscar usuarios específicamente por username
+    pub async fn find_user_by_username(&self, username: &Username) -> AppResult<Option<User>> {
+        self.user_repository
+            .find_by_username(username)
+            .await
+    }
+
+    /// Caso de uso: Buscar usuario por email
+    ///
+    /// Usado por admin para buscar usuarios específicamente por email
+    pub async fn find_user_by_email(&self, email: &Email) -> AppResult<Option<User>> {
+        self.user_repository
+            .find_by_email(email)
+            .await
     }
 }
 

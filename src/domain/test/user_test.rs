@@ -1,5 +1,5 @@
 // src/domain/test/user_test.rs
-use crate::domain::{User, Username, Email, UserId, PasswordHash};
+use crate::domain::{User, Username, Email, UserId, PasswordHash, UserRole};
 
 #[test]
 fn test_user_creation() {
@@ -126,6 +126,7 @@ fn test_user_from_repository() {
         "John".to_string(),
         "Doe".to_string(),
         PasswordHash::from_hash("$argon2id$...".to_string()),
+        UserRole::User,
         created_at,
         updated_at,
     );
@@ -133,6 +134,7 @@ fn test_user_from_repository() {
     assert_eq!(user.id(), user_id);
     assert_eq!(user.username().value(), "johndoe");
     assert_eq!(user.email().value(), "john@example.com");
+    assert_eq!(user.role(), UserRole::User);
     assert_eq!(user.created_at(), created_at);
     assert_eq!(user.updated_at(), updated_at);
 }
@@ -182,4 +184,60 @@ fn test_user_id_display() {
     // Verificar que el formato UUID es correcto (36 caracteres con guiones)
     assert_eq!(uuid_string.len(), 36);
     assert_eq!(uuid_string.chars().filter(|&c| c == '-').count(), 4);
+}
+
+#[test]
+fn test_user_with_role() {
+    use crate::domain::UserRole;
+
+    let user = User::new(
+        Username::new("johndoe".to_string()).unwrap(),
+        Email::new("john@example.com".to_string()).unwrap(),
+        "John".to_string(),
+        "Doe".to_string(),
+        PasswordHash::from_hash("hash".to_string()),
+    );
+
+    assert_eq!(user.role(), UserRole::User);
+    assert!(!user.is_admin());
+}
+
+#[test]
+fn test_update_username() {
+    let mut user = User::new(
+        Username::new("oldname".to_string()).unwrap(),
+        Email::new("user@example.com".to_string()).unwrap(),
+        "John".to_string(),
+        "Doe".to_string(),
+        PasswordHash::from_hash("hash".to_string()),
+    );
+
+    let old_updated = user.updated_at();
+    std::thread::sleep(std::time::Duration::from_millis(10));
+
+    let new_username = Username::new("newname".to_string()).unwrap();
+    user.update_username(new_username);
+
+    assert_eq!(user.username().value(), "newname");
+    assert!(user.updated_at() > old_updated);
+}
+
+#[test]
+fn test_update_email() {
+    let mut user = User::new(
+        Username::new("johndoe".to_string()).unwrap(),
+        Email::new("old@example.com".to_string()).unwrap(),
+        "John".to_string(),
+        "Doe".to_string(),
+        PasswordHash::from_hash("hash".to_string()),
+    );
+
+    let old_updated = user.updated_at();
+    std::thread::sleep(std::time::Duration::from_millis(10));
+
+    let new_email = Email::new("new@example.com".to_string()).unwrap();
+    user.update_email(new_email);
+
+    assert_eq!(user.email().value(), "new@example.com");
+    assert!(user.updated_at() > old_updated);
 }

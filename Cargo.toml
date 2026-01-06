@@ -50,6 +50,7 @@ anyhow = "1.0"
 async-trait = "0.1"
 futures = "0.3"
 temp-env = "0.3.6"
+serde_urlencoded = "0.7.1"
 
 # Binarios explícitos
 [[bin]]

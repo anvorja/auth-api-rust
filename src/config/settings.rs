@@ -198,11 +198,13 @@ impl Settings {
     }
 
     /// Indica si estamos en modo desarrollo
+    #[cfg(test)]
     pub fn is_development(&self) -> bool {
         self.environment == Environment::Development
     }
 
     /// Indica si estamos en modo producción
+    #[cfg(test)]
     pub fn is_production(&self) -> bool {
         self.environment == Environment::Production
     }

@@ -49,6 +49,13 @@ pub struct RegisterRequest {
     pub password: String,
 }
 
+impl UpdateProfileRequest {
+    /// Validar que al menos un campo esté presente
+    pub fn has_updates(&self) -> bool {
+        self.first_name.is_some() || self.last_name.is_some()
+    }
+}
+
 /// DTO para login
 #[derive(Debug, Deserialize, Validate, ToSchema)]
 pub struct LoginRequest {
@@ -94,6 +101,53 @@ pub struct ChangePasswordRequest {
     pub new_password_confirmation: String,
 }
 
+/// DTO para actualizar perfil
+#[derive(Debug, Deserialize, Validate, ToSchema)]
+pub struct UpdateProfileRequest {
+    /// Nombre
+    #[validate(length(min = 1, max = 100, message = "El nombre debe tener entre 1 y 100 caracteres"))]
+    #[schema(example = "Jane", min_length = 1, max_length = 100)]
+    pub first_name: Option<String>,
+
+    /// Apellido
+    #[validate(length(min = 1, max = 100, message = "El apellido debe tener entre 1 y 100 caracteres"))]
+    #[schema(example = "Smith", min_length = 1, max_length = 100)]
+    pub last_name: Option<String>,
+}
+
+/// DTO para admin actualizar username
+#[derive(Debug, Deserialize, Validate, ToSchema)]
+pub struct AdminUpdateUsernameRequest {
+    /// ID del usuario a actualizar
+    #[schema(example = "550e8400-e29b-41d4-a716-446655440000", format = "uuid")]
+    pub user_id: String,
+
+    /// Nuevo username
+    #[validate(
+        length(min = 3, max = 30, message = "El username debe tener entre 3 y 30 caracteres"),
+        regex(
+            path = *USERNAME_REGEX,
+            message = "El username solo puede contener letras, números y guión bajo"
+        )
+    )]
+    #[schema(example = "newusername", min_length = 3, max_length = 30)]
+    pub new_username: String,
+}
+
+/// DTO para admin actualizar email
+#[derive(Debug, Deserialize, Validate, ToSchema)]
+pub struct AdminUpdateEmailRequest {
+    /// ID del usuario a actualizar
+    #[schema(example = "550e8400-e29b-41d4-a716-446655440000", format = "uuid")]
+    pub user_id: String,
+
+    /// Nuevo email
+    #[validate(email(message = "Email inválido"), length(max = 255))]
+    #[schema(example = "newemail@example.com", format = "email")]
+    pub new_email: String,
+}
+
+
 impl ChangePasswordRequest {
     /// Valida que las contraseñas coincidan
     pub fn passwords_match(&self) -> bool {
@@ -131,35 +185,23 @@ pub struct AuthResponse {
 /// Información del usuario (sin datos sensibles)
 #[derive(Debug, Serialize, Clone, ToSchema)]
 pub struct UserResponse {
-    /// ID del usuario
     #[schema(example = "550e8400-e29b-41d4-a716-446655440000", format = "uuid")]
     pub id: Uuid,
-
-    /// Username
     #[schema(example = "johndoe")]
     pub username: String,
-
-    /// Email
     #[schema(example = "john@example.com", format = "email")]
     pub email: String,
-
-    /// Nombre completo
     #[schema(example = "John")]
     pub first_name: String,
-
-    /// Apellido
     #[schema(example = "Doe")]
     pub last_name: String,
-
-    /// Fecha de creación
+    #[schema(example = "user")]
+    pub role: String,
     #[schema(example = "2024-01-15T10:30:00Z", format = "date-time")]
     pub created_at: DateTime<Utc>,
-
-    /// Última actualización
     #[schema(example = "2024-01-15T10:30:00Z", format = "date-time")]
     pub updated_at: DateTime<Utc>,
 }
-
 /// Respuesta genérica de éxito
 #[derive(Debug, Serialize, ToSchema)]
 pub struct SuccessResponse {
@@ -221,6 +263,7 @@ impl UserResponse {
             email: user.email().value().to_string(),
             first_name: user.first_name().to_string(),
             last_name: user.last_name().to_string(),
+            role: user.role().to_string(),
             created_at: user.created_at(),
             updated_at: user.updated_at(),
         }

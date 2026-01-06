@@ -13,6 +13,7 @@ pub struct User {
     first_name: String,
     last_name: String,
     password_hash: PasswordHash,
+    role: UserRole,
     created_at: DateTime<Utc>,
     updated_at: DateTime<Utc>,
 }
@@ -32,6 +33,13 @@ pub struct Email(String);
 /// Value Object: Password hasheado
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PasswordHash(String);
+
+/// Value Object: Rol del usuario
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum UserRole {
+    User,
+    Admin,
+}
 
 // ============================================================================
 // Implementación de User
@@ -55,6 +63,7 @@ impl User {
             first_name,
             last_name,
             password_hash,
+            role: UserRole::default(),
             created_at: now,
             updated_at: now,
         }
@@ -68,6 +77,7 @@ impl User {
         first_name: String,
         last_name: String,
         password_hash: PasswordHash,
+        role: UserRole,
         created_at: DateTime<Utc>,
         updated_at: DateTime<Utc>,
     ) -> Self {
@@ -78,6 +88,7 @@ impl User {
             first_name,
             last_name,
             password_hash,
+            role,
             created_at,
             updated_at,
         }
@@ -86,6 +97,28 @@ impl User {
     // Getters
     pub fn id(&self) -> UserId {
         self.id
+    }
+
+    // Getter para rol
+    pub fn role(&self) -> UserRole {
+        self.role
+    }
+
+    // Verificar si es admin
+    pub fn is_admin(&self) -> bool {
+        self.role.is_admin()
+    }
+
+    // Actualizar username (solo admin)
+    pub fn update_username(&mut self, new_username: Username) {
+        self.username = new_username;
+        self.updated_at = Utc::now();
+    }
+
+    // Actualizar email (solo admin)
+    pub fn update_email(&mut self, new_email: Email) {
+        self.email = new_email;
+        self.updated_at = Utc::now();
     }
 
     pub fn username(&self) -> &Username {
@@ -104,6 +137,7 @@ impl User {
         &self.last_name
     }
 
+    #[allow(dead_code)]
     pub fn full_name(&self) -> String {
         format!("{} {}", self.first_name, self.last_name)
     }
@@ -303,5 +337,36 @@ impl PasswordHash {
     /// Obtiene el valor del hash
     pub fn value(&self) -> &str {
         &self.0
+    }
+}
+
+// ============================================================================
+// Implementación de UserRole
+// ============================================================================
+
+impl UserRole {
+    pub fn from_string(s: &str) -> Result<Self, String> {
+        match s.to_lowercase().as_str() {
+            "user" => Ok(Self::User),
+            "admin" => Ok(Self::Admin),
+            _ => Err(format!("Rol inválido: {}", s)),
+        }
+    }
+
+    pub fn to_string(&self) -> String {
+        match self {
+            Self::User => "user".to_string(),
+            Self::Admin => "admin".to_string(),
+        }
+    }
+
+    pub fn is_admin(&self) -> bool {
+        matches!(self, Self::Admin)
+    }
+}
+
+impl Default for UserRole {
+    fn default() -> Self {
+        Self::User
     }
 }

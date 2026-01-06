@@ -272,3 +272,150 @@ fn test_refresh_token_claims_new() {
     assert!(claims.exp > claims.iat);
     assert_eq!(claims.exp - claims.iat, expires_in);
 }
+
+#[test]
+fn test_update_profile_request_validation() {
+    use crate::presentation::UpdateProfileRequest;
+
+    // Ambos campos - válido
+    let valid_request = UpdateProfileRequest {
+        first_name: Some("Jane".to_string()),
+        last_name: Some("Doe".to_string()),
+    };
+    assert!(valid_request.validate().is_ok());
+    assert!(valid_request.has_updates());
+
+    // Solo first_name - válido
+    let valid_request = UpdateProfileRequest {
+        first_name: Some("Jane".to_string()),
+        last_name: None,
+    };
+    assert!(valid_request.validate().is_ok());
+    assert!(valid_request.has_updates());
+
+    // Solo last_name - válido
+    let valid_request = UpdateProfileRequest {
+        first_name: None,
+        last_name: Some("Smith".to_string()),
+    };
+    assert!(valid_request.validate().is_ok());
+    assert!(valid_request.has_updates());
+
+    // Ningún campo - válido pero sin updates
+    let valid_request = UpdateProfileRequest {
+        first_name: None,
+        last_name: None,
+    };
+    assert!(valid_request.validate().is_ok());
+    assert!(!valid_request.has_updates());
+
+    // first_name vacío - inválido
+    let invalid_request = UpdateProfileRequest {
+        first_name: Some("".to_string()),
+        last_name: Some("Doe".to_string()),
+    };
+    assert!(invalid_request.validate().is_err());
+
+    // last_name vacío - inválido
+    let invalid_request = UpdateProfileRequest {
+        first_name: Some("Jane".to_string()),
+        last_name: Some("".to_string()),
+    };
+    assert!(invalid_request.validate().is_err());
+
+    // first_name muy largo - inválido
+    let invalid_request = UpdateProfileRequest {
+        first_name: Some("a".repeat(101)),
+        last_name: None,
+    };
+    assert!(invalid_request.validate().is_err());
+
+    // last_name muy largo - inválido
+    let invalid_request = UpdateProfileRequest {
+        first_name: None,
+        last_name: Some("b".repeat(101)),
+    };
+    assert!(invalid_request.validate().is_err());
+}
+
+#[test]
+fn test_update_profile_request_partial_updates() {
+    use crate::presentation::UpdateProfileRequest;
+
+    // Test específico para actualizaciones parciales
+    let only_first = UpdateProfileRequest {
+        first_name: Some("NewName".to_string()),
+        last_name: None,
+    };
+    assert!(only_first.has_updates());
+
+    let only_last = UpdateProfileRequest {
+        first_name: None,
+        last_name: Some("NewLastName".to_string()),
+    };
+    assert!(only_last.has_updates());
+
+    let both = UpdateProfileRequest {
+        first_name: Some("NewFirst".to_string()),
+        last_name: Some("NewLast".to_string()),
+    };
+    assert!(both.has_updates());
+
+    let none = UpdateProfileRequest {
+        first_name: None,
+        last_name: None,
+    };
+    assert!(!none.has_updates());
+}
+
+#[test]
+fn test_admin_update_username_request_validation() {
+    use crate::presentation::AdminUpdateUsernameRequest;
+    use uuid::Uuid;
+
+    let valid_request = AdminUpdateUsernameRequest {
+        user_id: Uuid::new_v4().to_string(),
+        new_username: "newuser".to_string(),
+    };
+    assert!(valid_request.validate().is_ok());
+
+    let invalid_request = AdminUpdateUsernameRequest {
+        user_id: Uuid::new_v4().to_string(),
+        new_username: "ab".to_string(), // muy corto
+    };
+    assert!(invalid_request.validate().is_err());
+}
+
+#[test]
+fn test_admin_update_email_request_validation() {
+    use crate::presentation::AdminUpdateEmailRequest;
+    use uuid::Uuid;
+
+    let valid_request = AdminUpdateEmailRequest {
+        user_id: Uuid::new_v4().to_string(),
+        new_email: "new@example.com".to_string(),
+    };
+    assert!(valid_request.validate().is_ok());
+
+    let invalid_request = AdminUpdateEmailRequest {
+        user_id: Uuid::new_v4().to_string(),
+        new_email: "invalid-email".to_string(),
+    };
+    assert!(invalid_request.validate().is_err());
+}
+
+#[test]
+fn test_user_response_includes_role() {
+    use crate::domain::{User, Username, Email, PasswordHash};
+
+    let user = User::new(
+        Username::new("johndoe".to_string()).unwrap(),
+        Email::new("john@example.com".to_string()).unwrap(),
+        "John".to_string(),
+        "Doe".to_string(),
+        PasswordHash::from_hash("hash".to_string()),
+    );
+
+    let response = UserResponse::from_domain(&user);
+    assert_eq!(response.role, "user");
+}

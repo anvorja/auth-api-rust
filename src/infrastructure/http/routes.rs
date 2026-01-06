@@ -1,7 +1,7 @@
 // src/infrastructure/http/routes.rs
 use axum::{
     middleware,
-    routing::{get, post},
+    routing::{get, post, put, patch, delete},
     Router,
 };
 use std::sync::Arc;
@@ -22,6 +22,14 @@ use crate::infrastructure::{
             register_handler,
             get_profile_handler,
             change_password_handler,
+            update_profile_handler,
+            delete_account_handler,
+            admin_search_user_handler,
+            admin_get_user_by_id_handler,
+            admin_get_user_by_username_handler,
+            admin_get_user_by_email_handler,
+            admin_update_username_handler,
+            admin_update_email_handler,
         },
         middleware::{auth_middleware, create_cors_layer, security_headers_middleware},
     },
@@ -131,10 +139,22 @@ where
     // Rutas protegidas de usuarios (requieren autenticación)
     let user_routes: Router<AppState<R, P, J>> = Router::new()
         .route("/profile", get(get_profile_handler::<R, P, J, AppState<R, P, J>>))
-        .route("/change-password", post(change_password_handler::<R, P, J, AppState<R, P, J>>));
+        .route("/profile", patch(update_profile_handler::<R, P, J, AppState<R, P, J>>))
+        .route("/change-password", post(change_password_handler::<R, P, J, AppState<R, P, J>>))
+        .route("/account", delete(delete_account_handler::<R, P, J, AppState<R, P, J>>));
+
+    // Rutas protegidas de admin
+    let admin_routes: Router<AppState<R, P, J>> = Router::new()
+        .route("/users/search", get(admin_search_user_handler::<R, P, J, AppState<R, P, J>>))
+        .route("/users/{user_id}", get(admin_get_user_by_id_handler::<R, P, J, AppState<R, P, J>>))
+        .route("/users/by-username/{username}", get(admin_get_user_by_username_handler::<R, P, J, AppState<R, P, J>>))
+        .route("/users/by-email/{email}", get(admin_get_user_by_email_handler::<R, P, J, AppState<R, P, J>>))
+        .route("/users/username", put(admin_update_username_handler::<R, P, J, AppState<R, P, J>>))
+        .route("/users/email", put(admin_update_email_handler::<R, P, J, AppState<R, P, J>>));
 
     let protected_routes: Router<AppState<R, P, J>> = Router::new()
         .nest("/users", user_routes)
+        .nest("/admin", admin_routes)
         .layer(middleware::from_fn_with_state(
             auth_usecase.clone(),
             auth_middleware::<R, P, J>,
@@ -202,6 +222,14 @@ impl Modify for SecurityAddon {
         crate::infrastructure::http::handlers::logout_handler,
         crate::infrastructure::http::handlers::get_profile_handler,
         crate::infrastructure::http::handlers::change_password_handler,
+        crate::infrastructure::http::handlers::update_profile_handler,
+        crate::infrastructure::http::handlers::delete_account_handler,
+        crate::infrastructure::http::handlers::admin_update_username_handler,
+        crate::infrastructure::http::handlers::admin_update_email_handler,
+        crate::infrastructure::http::handlers::admin_search_user_handler,
+        crate::infrastructure::http::handlers::admin_get_user_by_id_handler,
+        crate::infrastructure::http::handlers::admin_get_user_by_username_handler,
+        crate::infrastructure::http::handlers::admin_get_user_by_email_handler,
     ),
     components(
         schemas(
@@ -213,13 +241,17 @@ impl Modify for SecurityAddon {
             crate::presentation::UserResponse,
             crate::presentation::SuccessResponse,
             crate::presentation::HealthResponse,
+            crate::presentation::UpdateProfileRequest,
+            crate::presentation::AdminUpdateUsernameRequest,
+            crate::presentation::AdminUpdateEmailRequest,
         )
     ),
     modifiers(&SecurityAddon),
     tags(
         (name = "Authentication", description = "Endpoints de autenticación de usuarios"),
         (name = "Users", description = "Gestión de perfil de usuario"),
-        (name = "Health", description = "Health check del servicio")
+        (name = "Health", description = "Health check del servicio"),
+        (name = "Admin", description = "Operaciones administrativas")
     ),
     info(
         title = "Auth API",
