@@ -280,12 +280,12 @@ where
         Ok(())
     }
 
-    /// Caso de uso: Actualizar perfil (nombre y apellido)
+    /// Caso de uso: Actualizar perfil (nombre y/o apellido)
     pub async fn update_profile(
         &self,
         user_id: UserId,
-        first_name: String,
-        last_name: String,
+        first_name: Option<String>,
+        last_name: Option<String>,
     ) -> AppResult<User> {
         tracing::info!("Actualizando perfil para usuario: {}", user_id.to_string());
 
@@ -295,8 +295,12 @@ where
             .await?
             .ok_or(AppError::UserNotFound)?;
 
+        // Aplicar solo los cambios proporcionados
+        let new_first_name = first_name.unwrap_or_else(|| user.first_name().to_string());
+        let new_last_name = last_name.unwrap_or_else(|| user.last_name().to_string());
+
         // Actualizar perfil
-        user.update_profile(first_name, last_name);
+        user.update_profile(new_first_name, new_last_name);
 
         // Guardar cambios
         self.user_repository.update(&user).await?;

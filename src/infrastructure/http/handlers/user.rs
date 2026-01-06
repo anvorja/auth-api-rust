@@ -140,7 +140,15 @@ where
     J: JwtService + 'static,
     S: AsRef<Arc<AuthUseCase<R, P, J>>> + Clone + Send + Sync + 'static,
 {
+    // Validar formato de campos (si están presentes)
     request.validate()?;
+
+    // Validar que al menos un campo esté presente
+    if !request.has_updates() {
+        return Err(AppError::ValidationError(
+            "Debe proporcionar al menos un campo para actualizar (first_name o last_name)".to_string()
+        ));
+    }
 
     let auth_usecase: &Arc<AuthUseCase<R, P, J>> = state.as_ref();
 

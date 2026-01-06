@@ -27,24 +27,56 @@ fn test_authenticated_user_extension() {
 fn test_update_profile_request_validation() {
     use validator::Validate;
 
-    // Request válido
+    // Request válido - ambos campos
     let valid_request = UpdateProfileRequest {
-        first_name: "Jane".to_string(),
-        last_name: "Doe".to_string(),
+        first_name: Some("Jane".to_string()),
+        last_name: Some("Doe".to_string()),
     };
     assert!(valid_request.validate().is_ok());
+    assert!(valid_request.has_updates());
 
-    // Nombre vacío - inválido
+    // Solo first_name - válido
+    let valid_request = UpdateProfileRequest {
+        first_name: Some("Jane".to_string()),
+        last_name: None,
+    };
+    assert!(valid_request.validate().is_ok());
+    assert!(valid_request.has_updates());
+
+    // Solo last_name - válido
+    let valid_request = UpdateProfileRequest {
+        first_name: None,
+        last_name: Some("Smith".to_string()),
+    };
+    assert!(valid_request.validate().is_ok());
+    assert!(valid_request.has_updates());
+
+    // Ninguno - válido pero no tiene updates
+    let valid_request = UpdateProfileRequest {
+        first_name: None,
+        last_name: None,
+    };
+    assert!(valid_request.validate().is_ok());
+    assert!(!valid_request.has_updates()); // Importante: no tiene cambios
+
+    // first_name vacío - inválido
     let invalid_request = UpdateProfileRequest {
-        first_name: "".to_string(),
-        last_name: "Doe".to_string(),
+        first_name: Some("".to_string()),
+        last_name: None,
     };
     assert!(invalid_request.validate().is_err());
 
-    // Apellido muy largo - inválido
+    // last_name muy largo - inválido
     let invalid_request = UpdateProfileRequest {
-        first_name: "Jane".to_string(),
-        last_name: "a".repeat(101),
+        first_name: None,
+        last_name: Some("a".repeat(101)),
+    };
+    assert!(invalid_request.validate().is_err());
+
+    // Ambos vacíos - inválido
+    let invalid_request = UpdateProfileRequest {
+        first_name: Some("".to_string()),
+        last_name: Some("".to_string()),
     };
     assert!(invalid_request.validate().is_err());
 }
@@ -243,8 +275,8 @@ fn test_update_profile_with_special_characters() {
 
     // Nombres con caracteres especiales válidos
     let request = UpdateProfileRequest {
-        first_name: "José".to_string(),
-        last_name: "García".to_string(),
+        first_name: Some("José".to_string()),
+        last_name: Some("García".to_string()),
     };
     // Debería validar OK porque validator permite cualquier UTF-8
     assert!(request.validate().is_ok());
@@ -423,22 +455,22 @@ fn test_profile_field_length_boundaries() {
 
     // Nombres en el límite superior (100 caracteres)
     let request = UpdateProfileRequest {
-        first_name: "a".repeat(100),
-        last_name: "b".repeat(100),
+        first_name: Some("a".repeat(100)),
+        last_name: Some("b".repeat(100)),
     };
     assert!(request.validate().is_ok());
 
     // Excediendo el límite
     let request = UpdateProfileRequest {
-        first_name: "a".repeat(101),
-        last_name: "Doe".to_string(),
+        first_name: Some("a".repeat(101)),
+        last_name: Some("Doe".to_string()),
     };
     assert!(request.validate().is_err());
 
     // Mínimo (1 carácter)
     let request = UpdateProfileRequest {
-        first_name: "J".to_string(),
-        last_name: "D".to_string(),
+        first_name: Some("J".to_string()),
+        last_name: Some("D".to_string()),
     };
     assert!(request.validate().is_ok());
 }
@@ -484,6 +516,57 @@ fn test_password_minimum_requirements() {
         current_password: "Old123!".to_string(),
         new_password: "ValidPass!".to_string(),
         new_password_confirmation: "ValidPass!".to_string(),
+    };
+    assert!(request.validate().is_err());
+}
+
+#[test]
+fn test_update_profile_request_partial_validation() {
+    use validator::Validate;
+
+    // Solo first_name - válido
+    let request = UpdateProfileRequest {
+        first_name: Some("Jane".to_string()),
+        last_name: None,
+    };
+    assert!(request.validate().is_ok());
+    assert!(request.has_updates());
+
+    // Solo last_name - válido
+    let request = UpdateProfileRequest {
+        first_name: None,
+        last_name: Some("Smith".to_string()),
+    };
+    assert!(request.validate().is_ok());
+    assert!(request.has_updates());
+
+    // Ambos - válido
+    let request = UpdateProfileRequest {
+        first_name: Some("Jane".to_string()),
+        last_name: Some("Smith".to_string()),
+    };
+    assert!(request.validate().is_ok());
+    assert!(request.has_updates());
+
+    // Ninguno - no tiene updates
+    let request = UpdateProfileRequest {
+        first_name: None,
+        last_name: None,
+    };
+    assert!(request.validate().is_ok());
+    assert!(!request.has_updates());
+
+    // first_name vacío - inválido
+    let request = UpdateProfileRequest {
+        first_name: Some("".to_string()),
+        last_name: None,
+    };
+    assert!(request.validate().is_err());
+
+    // last_name muy largo - inválido
+    let request = UpdateProfileRequest {
+        first_name: None,
+        last_name: Some("a".repeat(101)),
     };
     assert!(request.validate().is_err());
 }

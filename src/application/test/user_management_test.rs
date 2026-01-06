@@ -62,8 +62,8 @@ async fn test_update_profile() {
     let updated = usecase
         .update_profile(
             user.id(),
-            "Updated".to_string(),
-            "Name".to_string(),
+            Some("Updated".to_string()),
+            Some("Name".to_string()),
         )
         .await
         .unwrap();
@@ -144,4 +144,54 @@ async fn test_admin_update_email_unauthorized() {
 
     let _ = usecase.user_repository().delete(user1.id()).await;
     let _ = usecase.user_repository().delete(user2.id()).await;
+}
+
+#[tokio::test]
+#[ignore]
+async fn test_update_profile_partial_first_name() {
+    let usecase = create_test_auth_usecase().await;
+    let request = create_test_register_request("partialtest", "partial@example.com");
+
+    let (user, _, _) = usecase.register_user(request).await.unwrap();
+    let original_last_name = user.last_name().to_string();
+
+    // Actualizar solo first_name
+    let updated = usecase
+        .update_profile(
+            user.id(),
+            Some("NewFirst".to_string()),
+            None,
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(updated.first_name(), "NewFirst");
+    assert_eq!(updated.last_name(), original_last_name); // No cambió
+
+    let _ = usecase.user_repository().delete(user.id()).await;
+}
+
+#[tokio::test]
+#[ignore]
+async fn test_update_profile_partial_last_name() {
+    let usecase = create_test_auth_usecase().await;
+    let request = create_test_register_request("partialtest2", "partial2@example.com");
+
+    let (user, _, _) = usecase.register_user(request).await.unwrap();
+    let original_first_name = user.first_name().to_string();
+
+    // Actualizar solo last_name
+    let updated = usecase
+        .update_profile(
+            user.id(),
+            None,
+            Some("NewLast".to_string()),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(updated.first_name(), original_first_name); // No cambió
+    assert_eq!(updated.last_name(), "NewLast");
+
+    let _ = usecase.user_repository().delete(user.id()).await;
 }

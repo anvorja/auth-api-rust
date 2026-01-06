@@ -49,6 +49,13 @@ pub struct RegisterRequest {
     pub password: String,
 }
 
+impl UpdateProfileRequest {
+    /// Validar que al menos un campo esté presente
+    pub fn has_updates(&self) -> bool {
+        self.first_name.is_some() || self.last_name.is_some()
+    }
+}
+
 /// DTO para login
 #[derive(Debug, Deserialize, Validate, ToSchema)]
 pub struct LoginRequest {
@@ -100,12 +107,12 @@ pub struct UpdateProfileRequest {
     /// Nombre
     #[validate(length(min = 1, max = 100, message = "El nombre debe tener entre 1 y 100 caracteres"))]
     #[schema(example = "Jane", min_length = 1, max_length = 100)]
-    pub first_name: String,
+    pub first_name: Option<String>,
 
     /// Apellido
     #[validate(length(min = 1, max = 100, message = "El apellido debe tener entre 1 y 100 caracteres"))]
     #[schema(example = "Smith", min_length = 1, max_length = 100)]
-    pub last_name: String,
+    pub last_name: Option<String>,
 }
 
 /// DTO para admin actualizar username

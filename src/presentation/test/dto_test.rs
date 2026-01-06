@@ -277,17 +277,95 @@ fn test_refresh_token_claims_new() {
 fn test_update_profile_request_validation() {
     use crate::presentation::UpdateProfileRequest;
 
+    // Ambos campos - válido
     let valid_request = UpdateProfileRequest {
-        first_name: "Jane".to_string(),
-        last_name: "Doe".to_string(),
+        first_name: Some("Jane".to_string()),
+        last_name: Some("Doe".to_string()),
     };
     assert!(valid_request.validate().is_ok());
+    assert!(valid_request.has_updates());
 
+    // Solo first_name - válido
+    let valid_request = UpdateProfileRequest {
+        first_name: Some("Jane".to_string()),
+        last_name: None,
+    };
+    assert!(valid_request.validate().is_ok());
+    assert!(valid_request.has_updates());
+
+    // Solo last_name - válido
+    let valid_request = UpdateProfileRequest {
+        first_name: None,
+        last_name: Some("Smith".to_string()),
+    };
+    assert!(valid_request.validate().is_ok());
+    assert!(valid_request.has_updates());
+
+    // Ningún campo - válido pero sin updates
+    let valid_request = UpdateProfileRequest {
+        first_name: None,
+        last_name: None,
+    };
+    assert!(valid_request.validate().is_ok());
+    assert!(!valid_request.has_updates());
+
+    // first_name vacío - inválido
     let invalid_request = UpdateProfileRequest {
-        first_name: "".to_string(),
-        last_name: "Doe".to_string(),
+        first_name: Some("".to_string()),
+        last_name: Some("Doe".to_string()),
     };
     assert!(invalid_request.validate().is_err());
+
+    // last_name vacío - inválido
+    let invalid_request = UpdateProfileRequest {
+        first_name: Some("Jane".to_string()),
+        last_name: Some("".to_string()),
+    };
+    assert!(invalid_request.validate().is_err());
+
+    // first_name muy largo - inválido
+    let invalid_request = UpdateProfileRequest {
+        first_name: Some("a".repeat(101)),
+        last_name: None,
+    };
+    assert!(invalid_request.validate().is_err());
+
+    // last_name muy largo - inválido
+    let invalid_request = UpdateProfileRequest {
+        first_name: None,
+        last_name: Some("b".repeat(101)),
+    };
+    assert!(invalid_request.validate().is_err());
+}
+
+#[test]
+fn test_update_profile_request_partial_updates() {
+    use crate::presentation::UpdateProfileRequest;
+
+    // Test específico para actualizaciones parciales
+    let only_first = UpdateProfileRequest {
+        first_name: Some("NewName".to_string()),
+        last_name: None,
+    };
+    assert!(only_first.has_updates());
+
+    let only_last = UpdateProfileRequest {
+        first_name: None,
+        last_name: Some("NewLastName".to_string()),
+    };
+    assert!(only_last.has_updates());
+
+    let both = UpdateProfileRequest {
+        first_name: Some("NewFirst".to_string()),
+        last_name: Some("NewLast".to_string()),
+    };
+    assert!(both.has_updates());
+
+    let none = UpdateProfileRequest {
+        first_name: None,
+        last_name: None,
+    };
+    assert!(!none.has_updates());
 }
 
 #[test]

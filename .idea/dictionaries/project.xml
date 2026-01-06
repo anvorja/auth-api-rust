@@ -17,12 +17,14 @@
       <w>newusername</w>
       <w>normaluser</w>
       <w>nosniff</w>
+      <w>partialtest</w>
       <w>pgpassword</w>
       <w>profiletest</w>
       <w>rustfmt</w>
       <w>targetuser</w>
       <w>testuser</w>
       <w>usecase</w>
+      <w>validuser</w>
       <w>xvcj</w>
     </words>
   </dictionary>
